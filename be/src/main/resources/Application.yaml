@@ -1,0 +1,39 @@
+
+# logging:
+#    config: classpath:logback.xml
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    # none, servlet, reactive,
+    web-application-type: servlet
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: x
+    driverClassName: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      dialect: org.hibernate.dialect.PostgreSQL9Dialect
+      #            dialect: org.hibernate.dialect.HSQLDialect
+      ddl-auto: update
+      #ddl-auto: create
+
+
+app:
+  security:
+    #cross-origin: "*"
+    cross-origin: "http://localhost:4200"
+
+    jwt-secret: GreenBullSecretKey
+    #jwtExpirationMs: 86400000
+    #jwtCookieName: GreenBullCookie
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

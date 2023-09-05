@@ -1,0 +1,209 @@
+    <div class="grid">
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-500 font-medium mb-3">Feszültség</span>
+                        <div class="text-900 font-medium text-3xl">235 V</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-blue-100 border-round" [ngStyle]="{width: '2.5rem', height: '2.5rem'}">
+                        <i class="pi pi-power-off text-blue-500 text-xl"></i>
+                    </div>
+                </div>
+                <span class="text-green-500 font-medium">24</span>
+                <span class="text-500"> cella összesen</span>
+            </div>
+        </div>
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-500 font-medium mb-3">Átlagos Cella feszültség</span>
+                        <div class="text-900 font-medium text-3xl">9.710 V</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-orange-100 border-round" [ngStyle]="{width: '2.5rem', height: '2.5rem'}">
+                        <i class="pi pi-sliders-h text-orange-500 text-xl"></i>
+                    </div>
+                </div>
+                <span class="text-green-500 font-medium">24 </span>
+                <span class="text-500">cella átlaga</span>
+            </div>
+        </div>
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-500 font-medium mb-3">Max Cella feszültség eltérés</span>
+                        <div class="text-900 font-medium text-3xl">0.003 V</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-cyan-100 border-round" [ngStyle]="{width: '2.5rem', height: '2.5rem'}">
+                        <i class="pi pi-inbox text-cyan-500 text-xl"></i>
+                    </div>
+                </div>
+                <span class="text-green-500 font-medium">24 </span>
+                <span class="text-500">cella összesen</span>
+            </div>
+        </div>
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-500 font-medium mb-3">Online állapot</span>
+                        <div class="text-900 font-medium text-3xl">12:24:48</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-purple-100 border-round" [ngStyle]="{width: '2.5rem', height: '2.5rem'}">
+                        <i class="pi pi-clock text-purple-500 text-xl"></i>
+                    </div>
+                </div>
+                <span class="text-500"> előző nap: </span>
+                <span class="text-green-500 font-medium">16:32:45</span>
+            </div>
+        </div>
+        <!-- mérő műszer alakú diagram -->
+        <div class="col-12 xl:col-6">
+            <div class="card mb-0">
+                <!-- justify-content-between ez volt benne-->
+                <div class="flex align-items-center justify-content-center mb-3">
+                    <div echarts [options]="options" class="chart" style="width: 100%;"></div>
+                </div>
+                <span class="text-green-500 font-medium">85 </span>
+                <span class="text-500">responded</span>
+            </div>
+        </div>
+        <div class="col-12 xl:col-6">
+            <div class="card">
+                <div class="flex justify-content-between align-items-center mb-5">
+                    <h5>Best Selling Products</h5>
+                    <div>
+                        <button pButton type="button" icon="pi pi-ellipsis-v" class="p-button-rounded p-button-text p-button-plain" (click)="menu.toggle($event)"></button>
+                        <p-menu #menu [popup]="true" [model]="items"></p-menu>
+                    </div>
+                </div>
+                <ul class="list-none p-0 m-0">
+                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
+                        <div>
+                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Space T-Shirt</span>
+                            <div class="mt-1 text-600">Clothing</div>
+                        </div>
+                        <div class="mt-2 md:mt-0 flex align-items-center">
+                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" [ngStyle]="{height: '8px'}">
+                                <div class="bg-orange-500 h-full" [ngStyle]="{width: '50%'}"></div>
+                            </div>
+                            <span class="text-orange-500 ml-3 font-medium">%50</span>
+                        </div>
+                    </li>
+                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
+                        <div>
+                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Portal Sticker</span>
+                            <div class="mt-1 text-600">Accessories</div>
+                        </div>
+                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
+                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" [ngStyle]="{height: '8px'}">
+                                <div class="bg-cyan-500 h-full" [ngStyle]="{width: '16%'}"></div>
+                            </div>
+                            <span class="text-cyan-500 ml-3 font-medium">%16</span>
+                        </div>
+                    </li>
+                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
+                        <div>
+                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Supernova Sticker</span>
+                            <div class="mt-1 text-600">Accessories</div>
+                        </div>
+                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
+                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" [ngStyle]="{height: '8px'}">
+                                <div class="bg-pink-500 h-full" [ngStyle]="{width: '67%'}"></div>
+                            </div>
+                            <span class="text-pink-500 ml-3 font-medium">%67</span>
+                        </div>
+                    </li>
+                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
+                        <div>
+                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Wonders Notebook</span>
+                            <div class="mt-1 text-600">Office</div>
+                        </div>
+                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
+                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" [ngStyle]="{height: '8px'}">
+                                <div class="bg-green-500 h-full" [ngStyle]="{width: '35%'}"></div>
+                            </div>
+                            <span class="text-green-500 ml-3 font-medium">%35</span>
+                        </div>
+                    </li>
+                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
+                        <div>
+                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Mat Black Case</span>
+                            <div class="mt-1 text-600">Accessories</div>
+                        </div>
+                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
+                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" [ngStyle]="{height: '8px'}">
+                                <div class="bg-purple-500 h-full" [ngStyle]="{width: '75%'}"></div>
+                            </div>
+                            <span class="text-purple-500 ml-3 font-medium">%75</span>
+                        </div>
+                    </li>
+                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
+                        <div>
+                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Robots T-Shirt</span>
+                            <div class="mt-1 text-600">Clothing</div>
+                        </div>
+                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
+                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" [ngStyle]="{height: '8px'}">
+                                <div class="bg-teal-500 h-full" [ngStyle]="{width: '40%'}"></div>
+                            </div>
+                            <span class="text-teal-500 ml-3 font-medium">%40</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card">
+                <div>
+                    <h5>Apex Saját diagram </h5>
+                    <div id="wrapper">
+                        <div id="chart-line">
+                            <apx-chart
+                                [series]="apexChartOptions1.series"
+                                [chart]="apexChartOptions1.chart"
+                                [xaxis]="apexChartOptions1.xaxis"
+                                [dataLabels]="apexChartOptions1.dataLabels"
+                                [colors]="apexChartOptions1.colors"
+                                [fill]="apexChartOptions1.fill"
+                                [markers]="apexChartOptions1.markers"
+                                [stroke]="apexChartOptions1.stroke"
+                            ></apx-chart>
+                        </div>
+                        <div id="chart-line2">
+                            <apx-chart
+                                [series]="apexChartOptions2.series"
+                                [chart]="apexChartOptions2.chart"
+                                [xaxis]="apexChartOptions2.xaxis"
+                                [colors]="apexChartOptions2.colors"
+                                [fill]="apexChartOptions2.fill"
+                                [yaxis]="apexChartOptions2.yaxis"
+                            ></apx-chart>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card">
+                <div (click)="onDiagramLabelClick()">
+                    <h5>echart Saját diagram</h5>
+                </div>
+                <div class="flex align-items-center justify-content-center mb-3">
+                    <div echarts id="chart-container" [options]="chartOptions" class="chart" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card">
+                <h5>Eltérés Diagram</h5>
+                <p-chart type="line" [data]="chartData2" [options]="pChartOptions"></p-chart>
+            </div>
+        </div>
+    </div>
+

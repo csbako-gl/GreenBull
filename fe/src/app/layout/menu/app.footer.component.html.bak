@@ -1,0 +1,5 @@
+<div class="layout-footer">
+    <img src="assets/layout/images/{{layoutService.config.colorScheme === 'light' ? 'logo-dark' : 'logo-light'}}.svg" alt="GreenBull logo" class="mr-2">
+    by
+    <span class="font-medium ml-2">m4c1</span>
+</div>

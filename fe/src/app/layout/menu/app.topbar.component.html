@@ -1,0 +1,43 @@
+<div class="layout-topbar">
+    <a class="layout-topbar-logo" routerLink="">
+        <img src="assets/layout/images/{{layoutService.config.colorScheme === 'light' ? 'logo-dark' : 'logo-light'}}.svg" alt="logo">
+    </a>
+
+    <button #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
+        <i class="pi pi-bars"></i>
+    </button>
+
+    <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button" (click)="layoutService.showProfileSidebar()">
+        <i class="pi pi-ellipsis-v"></i>
+    </button>
+
+    <div #topbarmenu class="layout-topbar-menu" [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}" id="topbarmenu">
+        <div class="menu-item">
+            <button class="p-link layout-topbar-button" (click)="toggleMenu()" #profileButton id="profileButton">
+                <i class="pi pi-user"></i>
+                <span>Profile</span>
+            </button>
+            <div class="menu-list" [ngClass]="{'show': isMenuVisible}">
+                <ul>
+                    <li>
+                        <i class="pi pi-user"></i>
+                        <span>Menüelem 1</span> <!-- PrimeNG ikon az almenüben -->
+                    </li>
+                    <li>
+                        <i class="pi pi-cog"></i>
+                        <span>Menüelem 2</span> <!-- PrimeNG ikon az almenüben -->
+                    </li>
+                    <li (click)="onTopbarLogout()">
+                        <i class="pi pi-cog"></i>
+                        <span>Logout</span> <!-- PrimeNG ikon az almenüben -->
+                    </li>
+                    <!-- stb. -->
+                </ul>
+            </div>
+        </div>
+        <button class="p-link layout-topbar-button" [routerLink]="'/documentation'">
+            <i class="pi pi-cog"></i>
+            <span>Settings</span>
+        </button>
+    </div>
+</div>

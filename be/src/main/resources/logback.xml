@@ -1,0 +1,35 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %date %level [%thread] %logger{10} [%file:%line] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="API" class="ch.qos.logback.core.FileAppender">
+        <file>log/api.log</file>
+        <encoder>
+            <pattern>
+                %date %level [%thread] %logger{10} [%file:%line] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.m4c1" level="DEBUG" />
+
+    <!-- to view SQL statements, change to DEBUG -->
+    <logger name="org.hibernate.SQL" level="DEBUG" />
+
+    <logger name="org.springframework" level="WARN" />
+    <logger name="org.springframework.transaction" level="WARN" />
+
+    <!-- in order to debug some marshalling issues, this needs to be TRACE -->
+    <logger name="org.springframework.web.servlet.mvc" level="WARN" />
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

@@ -1,0 +1,14 @@
+{
+    "env": {
+        "name": "dev"
+     },
+    "appInsights": {
+        "instrumentationKey": "dev-0"
+     },
+    "logging": {
+        "console": true
+    },
+    "api": {
+        "url": "http://localhost:8080"
+    }
+}

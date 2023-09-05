@@ -1,0 +1,44 @@
+<div class="registration-body">
+    <div class="registration-panel p-fluid">
+        <div class="grid grid-nogutter">
+            <div class="col-12 registration-header">
+                <h1>Regisztráció</h1>
+                <h2>Üdvözöl a MAJA!</h2>
+                <img src="assets/layout/images/logo.png">
+            </div>
+            <div class="col-12" (keydown.enter)="onEnter(1)">
+                <span class="p-float-label">
+                    <input type="text" id="input_user_last" pInputText [(ngModel)]="lastname" pAutoFocus [autofocus]="true" #ln>
+                    <label>Vezetéknév</label>
+                </span>
+            </div>
+            <div class="col-12" (keydown.enter)="onEnter(2)">
+                <span class="p-float-label">
+                    <input type="text" id="input_user_first" pInputText [(ngModel)]="firstname" #fn>
+                    <label>Keresztnév</label>
+                </span>
+            </div>
+            <div class="col-12" (keydown.enter)="onEnter(3)">
+                <span class="p-float-label">
+                    <input type="text" id="input_user_email" pInputText [(ngModel)]="username" #un>
+                    <label>Email cím</label>
+                </span>
+            </div>
+            <div class="col-12" (keydown.enter)="onEnter(4)">
+                <span class="p-float-label">
+                    <input type="password" id="inpit_pw" pInputText [(ngModel)]="password" #pw>
+                    <label>Jelszó</label>
+                </span>
+            </div>
+            <div class="col-12" (keydown.enter)="onEnter(5)">
+                <span class="p-float-label">
+                    <input type="password" id="inpit_pw" pInputText [(ngModel)]="password2" #pw2>
+                    <label>Jelszó megerősítése</label>
+                </span>
+            </div>
+            <div class="col-12 button-container">
+                <button pButton type="button" label="Regisztráció" icon="pi pi-user" (click)="onSignUp()"></button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+{
+    "env": {
+        "name": "prod"
+     },
+    "appInsights": {
+        "instrumentationKey": "release-0"
+     },
+    "logging": {
+        "console": false
+    },
+    "api": {
+        "url": "http://localhost:8080"
+    }
+}

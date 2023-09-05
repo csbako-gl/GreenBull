@@ -1,0 +1,26 @@
+<div class="login-body">
+    <div class="login-panel p-fluid">
+        <div class="grid grid-nogutter">
+            <div class="col-12 login-header">
+                <h1>Belépés</h1>
+                <h2>Üdvözöl a GreenBull</h2>
+                <img src="assets/layout/images/logo.png">
+            </div>
+            <div class="col-12" (keydown.enter)="onEnter()">
+                <span class="p-float-label">
+                    <input type="text" id="input_user" pInputText [(ngModel)]="username" pAutoFocus [autofocus]="true" #un>
+                    <label>Felhasználónév</label>
+                </span>
+            </div>
+            <div class="col-12" (keydown.enter)="onSignIn()">
+                <span class="p-float-label">
+                    <input type="password" id="inpit_pw" pInputText [(ngModel)]="password" #pw>
+                    <label>Jelszó</label>
+                </span>
+            </div>
+            <div class="col-12 button-container">
+                <button pButton type="button" label="Belépés" icon="pi pi-user" (click)="onSignIn()"></button>
+            </div>
+        </div>
+    </div>
+</div>

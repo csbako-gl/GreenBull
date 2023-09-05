@@ -1,0 +1,20 @@
+<div class="login-body">
+    <div class="login-panel p-fluid">
+        <div class="grid grid-nogutter">
+            <div class="col-12 login-header">
+                <h1>Belépés</h1>
+                <h2>Google 2 faktoros azonosító</h2>
+                <img src="assets/layout/images/logo.png">
+            </div>
+            <div class="col-12" (keydown.enter)="onSignIn()">
+                <span class="p-float-label">
+                    <input type="password" pInputText [(ngModel)]="password2fa" pAutoFocus [autofocus]="true" #pw>
+                    <label>2FA azonosító</label>
+                </span>
+            </div>
+            <div class="col-12 button-container">
+                <button pButton type="button" label="Belépés" icon="pi pi-user" (click)="onSignIn()"></button>
+            </div>
+        </div>
+    </div>
+</div>

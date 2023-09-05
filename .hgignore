@@ -1,0 +1,90 @@
+#################################### BE ##########################
+syntax: glob
+
+HELP.md
+target/
+.git
+.hg/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+be/nbproject/private/
+be/nbbuild/
+be/dist/
+be/nbdist/
+be/.nb-gradle/
+build/
+
+### VS Code ###
+.vscode/
+
+syntax: regexp
+^\.hgignore$
+^\.mvn/wrapper/maven-wrapper\.jar$
+^.*/src/main/.*/target/$
+^.*/src/test/.*/target/$
+^.*/src/main/.*/build/$
+^.*/src/test/.*/build/$
+
+
+#################################### FE ##########################
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+syntax: glob
+
+# Compiled output
+fe/dist
+fe/tmp
+fe/out-tsc
+fe/bazel-out
+
+# Node
+fe/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode
+.vscode/*
+.history/*
+
+# Miscellaneous
+fe/.angular/cache
+.sass-cache/
+fe/connect.lock
+fe/coverage
+fe/libpeerconnection.log
+testem.log
+fe/typings
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Compiled files
+layout.css
+src/assets/demo/styles/badges.css
+src/assets/layout/styles/theme/designer
