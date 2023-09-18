@@ -1,13 +1,17 @@
 package com.m4c1.greenbull.settings;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
 @Builder
 @Table(name = "settings")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Settings {
 
     @Id

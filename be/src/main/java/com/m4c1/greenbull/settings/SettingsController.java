@@ -23,7 +23,7 @@ public class SettingsController {
     }
 
     @PutMapping("/update")
-    public RestResponse<Void> update(@RequestParam Settings settings) {
+    public RestResponse<Void> update(@RequestParam("settings") Settings settings) {
         settingsService.updateSettings(settings);
         return RestResponse.<Void>builder().build();
     }

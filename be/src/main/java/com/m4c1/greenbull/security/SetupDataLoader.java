@@ -1,6 +1,10 @@
 package com.m4c1.greenbull.security;
 
 
+import com.m4c1.greenbull.device.Device;
+import com.m4c1.greenbull.device.DeviceRepository;
+import com.m4c1.greenbull.device.DeviceType;
+import com.m4c1.greenbull.device.DeviceTypeRepository;
 import com.m4c1.greenbull.security.privilege.Privilege;
 import com.m4c1.greenbull.security.privilege.PrivilegeRepository;
 import com.m4c1.greenbull.security.role.Role;
@@ -31,6 +35,12 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     private PrivilegeRepository privilegeRepository;
 
     @Autowired
+    private DeviceTypeRepository deviceTypeRepository;
+
+    @Autowired
+    private DeviceRepository deviceRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     // API
@@ -54,8 +64,18 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         final Role userRole = createRoleIfNotFound("ROLE_USER", userPrivileges);
 
         // == create initial user
-        createUserIfNotFound("admin@admin.com", "Admin", "Admin", "admin", new ArrayList<>(Collections.singletonList(adminRole)));
+        User admin = createUserIfNotFound("admin@admin.com", "Admin", "Admin", "admin", new ArrayList<>(Collections.singletonList(adminRole)));
         createUserIfNotFound("test@test.com", "Test", "Test", "test", new ArrayList<>(Collections.singletonList(userRole)));
+
+        // == create initial device
+        final String desc = "1-port RS485/232 to WiFi converters USR-W610 can realize the bi-directional transparent "
+                + "data transmission between RS232/RS485, WiFi and Ethernet. Through simple configuration via Web Server"
+                + " or setup software can assign working details, realize serial data and TCP/IP data package transparent"
+                + " transmission by converter";
+        final DeviceType deviceType = createDeviceTypeIfNotFound("USR-W610", "PUSR", desc, new HashMap<>());
+        final Device device = createDeviceIfNotFound("Tibi2", deviceType.getId(), admin.getId());
+        final Device device2 = createDeviceIfNotFound("Tibi3", deviceType.getId(), admin.getId());
+
         alreadySetup = true;
     }
 
@@ -93,4 +113,30 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         return user;
     }
 
+    private DeviceType createDeviceTypeIfNotFound(final String name, final String manufacture, final String desc, Map<String, String> otherData) {
+        DeviceType deviceType = deviceTypeRepository.findByNameAndManufacture(name, manufacture).orElse(null);
+        if(deviceType == null) {
+            deviceType = new DeviceType();
+            deviceType.setName(name);
+            deviceType.setManufacture(manufacture);
+            deviceType.setDescription(desc);
+            deviceType.setOtherData(otherData);
+
+            deviceType = deviceTypeRepository.save(deviceType);
+        }
+        return deviceType;
+    }
+
+    private Device createDeviceIfNotFound(String name, Long deviceTypeId, Long userId) {
+        Device device = deviceRepository.findByUserIdAndName(userId, name).orElse(null);
+        if (device == null) {
+            device = new Device();
+            device.setTypeId(deviceTypeId);
+            device.setName(name);
+            device.setUserId(userId);
+
+            device = deviceRepository.save(device);
+        }
+        return device;
+    }
 }
