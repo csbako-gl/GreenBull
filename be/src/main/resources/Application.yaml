@@ -22,6 +22,12 @@ spring:
       ddl-auto: update
       #ddl-auto: create
 
+springdoc:
+  swagger-ui:
+    path: "swagger.html"
+    enabled: true
+    tryItOutEnabled: true
+    filter: true
 
 app:
   security:

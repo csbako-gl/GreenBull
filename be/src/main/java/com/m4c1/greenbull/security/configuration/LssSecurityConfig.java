@@ -68,8 +68,10 @@ public class LssSecurityConfig {
                                         "/settings*",       // TODO remove?
                                         "/v3/api-docs/**",
                                         "/swagger.json",
-                                        "swagger-ui/index.html**",
-                                        "swagger-ui/**",
+                                        "/swagger-ui/index.html**",
+                                        "/swagger-ui/**",
+                                        "/swagger/**",
+                                        "/swg**",
                                         "/swagger-ui.html",
                                         "/swagger-resources/**",
                                         "/swagger**",
