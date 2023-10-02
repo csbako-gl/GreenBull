@@ -34,16 +34,18 @@ public class MyCustomLoginAuthenticationSuccessHandler implements Authentication
         redirectStrategy.sendRedirect(request, response, "/homepage.html?user=" + authentication.getName());
 
         final HttpSession session = request.getSession(false);
+
+        String username;
+        if (authentication.getPrincipal() instanceof User user) {
+            username = user.getEmail();
+        } else if(authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User user) {
+            username = user.getUsername();
+        } else {
+            username = authentication.getName();
+        }
+
         if (session != null) {
             session.setMaxInactiveInterval(30 * 60);
-            String username;
-            if (authentication.getPrincipal() instanceof User) {
-                username = ((User)authentication.getPrincipal()).getEmail();
-            }
-            else {
-                username = authentication.getName();
-            }
-
             LoggedUser user = new LoggedUser(username, activeUserStore);
             session.setAttribute("user", user);
         }
@@ -51,7 +53,7 @@ public class MyCustomLoginAuthenticationSuccessHandler implements Authentication
     }
 
     private String getUserName(final Authentication authentication) {
-        return ((User) authentication.getPrincipal()).getFirstName();
+        return ((User) authentication.getPrincipal()).getEmail();
     }
 
     private void addWelcomeCookie(final String user, final HttpServletResponse response) {

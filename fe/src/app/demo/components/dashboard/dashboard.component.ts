@@ -1,11 +1,9 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
-import { MenuItem } from 'primeng/api';
-import { Product } from '../../api/product';
-import { ProductService } from '../../service/product.service';
 import { Subscription } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { NgxEchartsModule } from 'ngx-echarts'; // Importáld a ngx-echarts modult
 import { ApexChartModule } from '../apex-chart/apex-chart.modules';
+import { format } from 'date-fns';
 import * as echarts from 'echarts'; 
 import {
     ChartComponent,
@@ -18,9 +16,12 @@ import {
     ApexMarkers,
     ApexStroke,
     ApexNonAxisChartSeries
-  } from "ng-apexcharts";
-  
-  
+} from "ng-apexcharts";
+import { BatteryDataService } from 'src/app/service/batterydataservice';
+import { ApiResponse } from 'src/app/model/api.response.model';
+import { BatteryData } from 'src/app/model/battery.data.model';
+import * as ApexCharts from 'apexcharts';
+
 
 export type ChartOptions = {
     series?: ApexAxisChartSeries | ApexNonAxisChartSeries;
@@ -32,364 +33,438 @@ export type ChartOptions = {
     stroke?: ApexStroke | any;
     markers?: ApexMarkers | any;
     colors?: string[] | any;
-  };
-  
+};
+
+const CHART_DELTA : number = 0.002;
+const CHART_LIMIT : number = 1500;
 
 @Component({
     templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
     
-    options: any;
-    
-    items!: MenuItem[];
-    
-    products!: Product[];
-    
-    chartData2: any;
-    
-    chartOptions: any;
-    pChartOptions: any;
-    
+    gaugeChartOptions1: any;
+    gaugeChartOptions2: any;
+
     subscription!: Subscription;
-
-    base: any;
-    oneDay = 24 * 3600 * 1000;
-    date: any = [];
+    
     dataArray : any = [];
-
-    @ViewChild("chart") chart!: ChartComponent;
+    batteryDataArray : BatteryData[] = [];
+    lastBatteryData : BatteryData = {};
+    averagevoltage: number = 0;
+    deltaVoltage: number = 0;
+    lastUpdateTime: string = "";
+    
     public apexChartOptions1!: Partial<ChartOptions> | any;
-    public apexChartOptions2: Partial<ChartOptions> | any;
+    public apexChartOptions2!: Partial<ChartOptions> | any;
 
-
-    constructor(private productService: ProductService, public layoutService: LayoutService, private elementRef: ElementRef) {
+    constructor(
+        public layoutService: LayoutService,
+        private elementRef: ElementRef,
+        private batteryDataService: BatteryDataService
+    ) {
         this.subscription = this.layoutService.configUpdate$.subscribe(() => {
-            this.initChart();
-            this.initLineChartOptions();
         });
 
-        this.apexChartOptions1 = {
-            series: [
-              {
-                name: "series1",
-                data: this.generateDayWiseTimeSeries(
-                  new Date("11 Feb 2017").getTime(),
-                  185,
-                  {
-                    min: 30,
-                    max: 90
-                  }
-                )
-              },
-              {
-                name: "series2",
-                data: this.generateDayWiseTimeSeries(
-                  new Date("11 Feb 2017").getTime(),
-                  185,
-                  {
-                    min: 30,
-                    max: 90
-                  }
-                )
-              },
-              {
-                name: "series3",
-                data: this.generateDayWiseTimeSeries(
-                  new Date("11 Feb 2017").getTime(),
-                  185,
-                  {
-                    min: 30,
-                    max: 90
-                  }
-                )
-              },
-              {
-                name: "series4",
-                data: this.generateDayWiseTimeSeries(
-                  new Date("11 Feb 2017").getTime(),
-                  185,
-                  {
-                    min: 30,
-                    max: 90
-                  }
-                )
-              },
-              {
-                name: "series5",
-                data: this.generateDayWiseTimeSeries(
-                  new Date("11 Feb 2017").getTime(),
-                  185,
-                  {
-                    min: 30,
-                    max: 90
-                  }
-                )
-              },
-      
-            ],
-            chart: {
-              id: "chart2",
-              type: "line",
-              height: 330,
-              toolbar: {
-                autoSelected: "pan",
-                show: true
-              }
-            },
-            colors: ["#546E7A", "#FF6E1A", "#006E1A", "#006E00", "#006EFF"],
-            stroke: {
-              width: 3,
-              curve: "smooth"
-            },
-            dataLabels: {
-              enabled: false
-            },
-            fill: {
-              opacity: 1
-            },
-            markers: {
-              size: 0
-            },
-            xaxis: {
-              type: "datetime"
-            }
-          };
-      
-          this.apexChartOptions2 = {
-            series: [
-              {
-                name: "series1",
-                data: this.generateDayWiseTimeSeries(
-                  new Date("11 Feb 2017").getTime(),
-                  185,
-                  {
-                    min: 30,
-                    max: 90
-                  }
-                )
-              }
-            ],
-            chart: {
-              id: "chart1",
-              height: 90,
-              type: "area",
-              brush: {
-                target: "chart2",
-                enabled: true
-              },
-              selection: {
-                enabled: true,
-                xaxis: {
-                  min: new Date("19 Jun 2017").getTime(),
-                  max: new Date("14 Aug 2017").getTime()
-                }
-              }
-            },
-            colors: ["#008FFB"],
-            fill: {
-              type: "gradient",
-              gradient: {
-                opacityFrom: 0.91,
-                opacityTo: 0.1
-              }
-            },
-            xaxis: {
-              type: "datetime",
-              tooltip: {
-                enabled: false
-              }
-            },
-            yaxis: {
-              tickAmount: 2
-            }
-          };
+        this.dataArray = [];
+        for (let i = 0; i < 16; i++) {
+            this.dataArray.push([]);
+        }
+
+        this.initChartOption1();
+        this.initChartOption2();
     }
 
     ngOnInit() {
-        this.initChart();
-        this.productService.getProductsSmall().then(data => this.products = data);
-        
-        this.items = [
-            { label: 'Add New', icon: 'pi pi-fw pi-plus' },
-            { label: 'Remove', icon: 'pi pi-fw pi-minus' }
-        ];
-
+        this.initApexChartData();
         this.initGaugeChartOptions();
-        this.initLineChartOptions();
+        this.initLastData();
     }
 
+    initLastData() {
+        this.batteryDataService.getLastBatteryData(152).subscribe((resp : ApiResponse) => {
+            if(resp?.data != null) {
+                this.lastBatteryData = resp.data;
+                if(this.lastBatteryData.pakfeszultseg) {
+                    this.lastBatteryData.pakfeszultseg /= 1000;
+                }
+                const voltages: number[] = [];
+                if (this.lastBatteryData.c1) voltages.push(this.lastBatteryData.c1);
+                if (this.lastBatteryData.c2) voltages.push(this.lastBatteryData.c2);
+                if (this.lastBatteryData.c3) voltages.push(this.lastBatteryData.c3);
+                if (this.lastBatteryData.c4) voltages.push(this.lastBatteryData.c4);
+                if (this.lastBatteryData.c5) voltages.push(this.lastBatteryData.c5);
+                if (this.lastBatteryData.c6) voltages.push(this.lastBatteryData.c6);
+                if (this.lastBatteryData.c7) voltages.push(this.lastBatteryData.c7);
+                if (this.lastBatteryData.c8) voltages.push(this.lastBatteryData.c8);
+                if (this.lastBatteryData.c9) voltages.push(this.lastBatteryData.c9);
+                if (this.lastBatteryData.c10) voltages.push(this.lastBatteryData.c10);
+                if (this.lastBatteryData.c11) voltages.push(this.lastBatteryData.c11);
+                if (this.lastBatteryData.c12) voltages.push(this.lastBatteryData.c12);
+                if (this.lastBatteryData.c13) voltages.push(this.lastBatteryData.c13);
+                if (this.lastBatteryData.c14) voltages.push(this.lastBatteryData.c14);
+                if (this.lastBatteryData.c15) voltages.push(this.lastBatteryData.c15);
+                if (this.lastBatteryData.c16) voltages.push(this.lastBatteryData.c16);
+                let sum : number = 0;
+                let min : number = voltages[0];
+                let max : number = voltages[0];
+                for(let i = 0; i < voltages.length; i++) {
+                    sum += voltages[i];
+                    if(min > voltages[i]) min = voltages[i];
+                    if(max < voltages[i]) max = voltages[i];
+                }
+                this.lastBatteryData = {...this.lastBatteryData};
+                this.averagevoltage = (sum/16/1000);
+                this.deltaVoltage = (max-min) /1000;
+                if(this.lastBatteryData.date) this.lastUpdateTime = format(this.lastBatteryData.date, 'yyyy-MM-dd HH:mm:ss');
+
+                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData.bmshomerseklet;
+                this.gaugeChartOptions1.series[0].data[0].name = 'BMS Hőmérséklet';
+                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.szenzorho1;
+                this.gaugeChartOptions2.series[0].data[0].name = '1. Szenzor Hőmérséklet'
+                console.log("this.lastBatteryData.bmshomerseklet");
+                console.dir(this.lastBatteryData.szenzorho1);
+                this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
+                this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
+            }
+        });
+    }
+
+    initChartOption1() {
+        let min = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
+            ? this.dataArray[0][0][0] 
+            : new Date("19 Jun 2017").getTime();
+        let max  = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
+            ? this.dataArray[0][this.dataArray[0].size-1][0] 
+            : new Date("14 Aug 2017").getTime()
+        this.apexChartOptions1 = { ...this.apexChartOptions1, ...{
+            series: [
+                { name: "c1", data: this.dataArray[0] },
+                { name: "c2", data: this.dataArray[1] },
+                { name: "c3", data: this.dataArray[2] },
+                { name: "c4", data: this.dataArray[3] },
+                { name: "c5", data: this.dataArray[4] },
+                { name: "c6", data: this.dataArray[5] },
+                { name: "c7", data: this.dataArray[6] },
+                { name: "c8", data: this.dataArray[7] },
+                { name: "c9", data: this.dataArray[8] },
+                { name: "c10", data: this.dataArray[9] },
+                { name: "c11", data: this.dataArray[10] },
+                { name: "c12", data: this.dataArray[11] },
+                { name: "c13", data: this.dataArray[12] },
+                { name: "c14", data: this.dataArray[13] },
+                { name: "c15", data: this.dataArray[14] },
+                { name: "c16", data: this.dataArray[15] },
+            ],
+            chart: {
+                id: "chart2",
+                type: "line",
+                height: 530,
+                zoom: {
+                    enabled: true, // Engedélyezzük a zoom-ot
+                    autoScaleYaxis: true, // Automatikus Y-tengely skála beállítás
+                    zoomedArea: {
+                        xaxis: {
+                            min: min, // Kezdeti minimum érték
+                            max: max  // Kezdeti maximum érték
+                        }
+                    }
+                },
+                toolbar: {
+                    autoSelected: "zoom",
+                    show: true,
+                    reset: true
+                },
+                panning: {
+                    enabled: true
+                },
+                events: {
+                    // custom function (not event)
+                    findIndex : function(date : any, series : any[] ) : number {
+                        let left = 0;
+                        let right = series.length - 1;
+                        let resultIndex = -1;
+                        while (left <= right) {
+                            let mid = Math.floor((left + right) / 2);
+                            if (series[mid] >= date) {
+                                resultIndex = mid;
+                                right = mid - 1;
+                            } else {
+                                left = mid + 1;
+                            }
+                        }
+                        return resultIndex;
+                    },
+                    // custom function (not event)
+                    findMinMaxValue : function (series: any[], minIndex: number, maxIndex: number): { min: number, max: number } {
+                        if (minIndex < 0 || minIndex >= series.length || maxIndex < 0 || maxIndex >= series.length || minIndex > maxIndex) {
+                            throw new Error("Érvénytelen indexek. min:" + minIndex + " max:" + maxIndex + " size:" + series.length);
+                        }
+                    
+                        let min = series[minIndex];
+                        let max = series[minIndex];
+                        for (let i = minIndex + 1; i <= maxIndex; i++) {
+                            if (series[i] < min) {
+                                min = series[i];
+                            } else if (series[i] > max) {
+                                max = series[i];
+                            }
+                        }
+                        
+                        return { min, max };
+                    },
+                    // TODO itt ki kell találni valamit hogy miért nem engedi ezt a függcényt használni
+                    racalcVerticalZoom : function (chartContext: any, { xaxis }: any) {
+                        const series : any[] = chartContext?.data?.twoDSeriesX;
+                        const seriesY: any[] = chartContext?.data?.twoDSeries;
+                        var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
+                        var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
+                        minIndex = minIndex > 0 ? minIndex : 0;
+                        maxIndex = maxIndex >= series.length ? series.length - 1 : maxIndex;
+                        const minmax = this.findMinMaxValue(seriesY, minIndex, maxIndex);
+                        let delta = (minmax.max - minmax.min) / 10.0;
+                        delta = delta > CHART_DELTA ? delta : CHART_DELTA;
+                        chartContext.updateOptions({
+                            yaxis: {
+                              min: minmax.min - delta * 2, // Új minimum érték
+                              max: minmax.max + delta// Új maximum érték
+                            }
+                        });
+                    },
+                    scrolled: function(chartContext: any, { xaxis }: any) {
+                        const series : any[] = chartContext?.data?.twoDSeriesX;
+                        const seriesY: any[] = chartContext?.data?.twoDSeries;
+                        var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
+                        var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
+                        minIndex = minIndex > 0 ? minIndex : 0;
+                        maxIndex = maxIndex >= series.length ? series.length - 1 : maxIndex;
+                        const minmax = this.findMinMaxValue(seriesY, minIndex, maxIndex);
+                        let delta = (minmax.max - minmax.min) / 10.0;
+                        delta = delta > CHART_DELTA ? delta : CHART_DELTA;
+                        chartContext.updateOptions({
+                            yaxis: {
+                              min: minmax.min - delta * 2, // Új minimum érték
+                              max: minmax.max + delta// Új maximum érték
+                            }
+                        });
+                    },
+                    zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
+                        const series : any[] = chartContext?.data?.twoDSeriesX;
+                        const seriesY: any[] = chartContext?.data?.twoDSeries;
+                        var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
+                        var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
+                        minIndex = minIndex > 0 ? minIndex : 0;
+                        maxIndex = maxIndex >= series.length ? series.length - 1 : maxIndex;
+                        const minmax = this.findMinMaxValue(seriesY, minIndex, maxIndex);
+                        let delta = (minmax.max - minmax.min) / 10.0;
+                        delta = delta > CHART_DELTA ? delta : CHART_DELTA;
+                        chartContext.updateOptions({
+                            yaxis: {
+                              min: minmax.min - delta * 2, // Új minimum érték
+                              max: minmax.max + delta// Új maximum érték
+                            }
+                        });
+                    },
+                    brushScrolled: function(chartContext: any, { xaxis, yaxis }: any) {
+                        console.log("brushScrolled");
+                        console.dir(chartContext);
+                    }
+                }
+            },
+            colors: [
+                    "#f00",
+                    "#ff5900",
+                    "#f90",
+                    "#ffd000",
+                    "#fff700",
+                    "#d4ff00",
+                    "#95ff00",
+                    "#2bff00",
+                    "#00ff73",
+                    "#00ffbf",
+                    "#00eaff",
+                    "#08f",
+                    "#0026ff",
+                    "#7300ff",
+                    "#d400ff",
+                    "#ff00b7"
+                ],
+            stroke: {
+                width: 1,
+                curve: "smooth"
+            },
+            dataLabels: {
+                enabled: false
+            },
+            fill: {
+                opacity: 1
+            },
+            markers: {
+                size: 0
+            },
+            xaxis: {
+                type: "datetime"
+            },
+            yaxis: {
+                forceNiceScale: true,
+                tickAmount: 5
+            }
+        }};
+        window.dispatchEvent(new Event('resize'));
+    }
+
+    initChartOption2() {
+        let minX = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
+            ? this.dataArray[0][0][0] 
+            : new Date("19 Jun 2017").getTime();
+        let maxX  = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
+            ? this.dataArray[0][this.dataArray[0].size-1][0] 
+            : new Date("14 Aug 2017").getTime()
+        this.apexChartOptions2 = { ...this.apexChartOptions2, ...{
+            series: [
+                { name: "series1", data: this.dataArray[0] },
+            ],
+            chart: {
+                id: "chart1",
+                height: 90,
+                type: "area",
+                brush: {
+                    target: "chart2",
+                    enabled: true
+                },
+                selection: {
+                    enabled: true,
+                    xaxis: {
+                        min: minX,
+                        max: maxX
+                    }
+                }
+            },
+            colors: ["#008FFB"],
+            fill: {
+                type: "gradient",
+                gradient: {
+                    opacityFrom: 0.91,
+                    opacityTo: 0.1
+                }
+            },
+            xaxis: {
+                type: "datetime",
+                tooltip: {
+                    enabled: false
+                }
+            },
+            yaxis: {
+                tickAmount: 5
+            },
+            zoom: {
+                zoomedArea: {
+                    // Kezdeti zoom érték beállítása
+                    xaxis: {
+                        min: minX, // Kezdeti minimum érték
+                        max: maxX  // Kezdeti maximum érték
+                    }
+                }
+            }
+        }};
+        window.dispatchEvent(new Event('resize'));
+    }
+                                
+    public onApexLabelClick() {
+    }
+    
+    public initApexChartData() {
+        this.batteryDataService.getBatteryDataLimited(152/*TODO ide kell majd autmata id kitalélés*/, CHART_LIMIT).subscribe((resp : ApiResponse) => {
+            /*this.dataArray = [];
+            for (let i = 0; i < 16; i++) {
+                this.dataArray.push([]);
+            }*/
+            if(resp?.data?.length > 0) {
+                this.batteryDataArray = resp.data;
+                console.log('battery data count: ' + this.batteryDataArray.length);
+                for(let item of this.batteryDataArray) {
+                    this.dataArray[0].push([item.date, this.getChartValue(item.c1)]);
+                    this.dataArray[1].push([item.date, this.getChartValue(item.c2)]);
+                    this.dataArray[2].push([item.date, this.getChartValue(item.c3)]);
+                    this.dataArray[3].push([item.date, this.getChartValue(item.c4)]);
+                    this.dataArray[4].push([item.date, this.getChartValue(item.c5)]);
+                    this.dataArray[5].push([item.date, this.getChartValue(item.c6)]);
+                    this.dataArray[6].push([item.date, this.getChartValue(item.c7)]);
+                    this.dataArray[7].push([item.date, this.getChartValue(item.c8)]);
+                    this.dataArray[8].push([item.date, this.getChartValue(item.c9)]);
+                    this.dataArray[9].push([item.date, this.getChartValue(item.c10)]);
+                    this.dataArray[10].push([item.date, this.getChartValue(item.c11)]);
+                    this.dataArray[11].push([item.date, this.getChartValue(item.c12)]);
+                    this.dataArray[12].push([item.date, this.getChartValue(item.c13)]);
+                    this.dataArray[13].push([item.date, this.getChartValue(item.c14)]);
+                    this.dataArray[14].push([item.date, this.getChartValue(item.c15)]);
+                    this.dataArray[15].push([item.date, this.getChartValue(item.c16)]);
+                }
+            }
+            this.initChartOption1();
+            this.initChartOption2();
+            // this is the MAGIC!!!
+            //this.ugyletek = [...this.ugyletek];
+        });
+    }
+
+    private getChartValue(item: any) {
+        if (item && typeof item === 'number') {
+            return item / 1000;
+        } else {
+            return item;
+        }
+    }
+                                
     public generateDayWiseTimeSeries(baseval: number, count: number, yrange: { min: any; max: any; }) {
         var i = 0;
         var series = [];
         while (i < count) {
-          var x = baseval;
-          var y =
+            var x = baseval;
+            var y =
             Math.floor(Math.random() * (yrange.max - yrange.min + 1)/10) + yrange.min;
-    
-          series.push([x, y]);
-          baseval += 86400000;
-          i++;
+            
+            series.push([x, y]);
+            baseval += 86400000;
+            i++;
         }
         return series;
-      }
-
-    initLineChartOptions() {
-        const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--text-color');
-        const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
-        const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
-
-        // documentation: https://echarts.apache.org/en/option.html#color
-        this.chartOptions = {
-            tooltip: {
-                trigger: 'axis',
-                position: function (pt: any[]) {
-                    return [pt[0], '10%'];
-                },
-            },
-            title: {
-                left: 'center',
-                text: 'Large Area Chart',
-                textStyle: {
-                    color: textColor
-                }                
-            },
-            toolbox: {
-                feature: {
-                    dataZoom: {
-                        yAxisIndex: 'none'
-                    },
-                    restore: {},
-                    saveAsImage: {}
-                }
-            },
-            xAxis: {
-                type: 'category',
-                boundaryGap: false,
-                nameTextStyle: {
-                    color: textColor
-                },
-                data: this.date
-            },
-            axisLine: {
-                lineStyle: { color: 'red' }
-            },
-            yAxis: {
-                type: 'value',
-                boundaryGap: [0, '100%'],
-                nameTextStyle: {
-                    color: 'red'
-                },
-            },
-            dataZoom: [
-                {
-                    type: 'inside',
-                    start: 0,
-                    end: 10
-                },
-                {
-                    start: 0,
-                    end: 10
-                }
-            ],
-            series: []
-        };
-
-        this.initLineChartData();
     }
-
-    initLineChartData() {
-        this.base = +new Date(1968, 9, 3);
-        this.oneDay = 24 * 3600 * 1000;
-
-        for (let i = 1; i < 20000; i++) {
-            const now = new Date((this.base += this.oneDay));
-            this.date.push([now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/'));
-        }
-        for (let dataSet = 0; dataSet < 5; dataSet++) {
-            const data = [Math.random() * 300];
-            for (let i = 1; i < 20000; i++) {
-                data.push(Math.round((Math.random() - 0.5) * 20 + data[i - 1]));
-            }
-            this.dataArray.push(data);
-
-            this.chartOptions.series.push(
-                {
-                    name: 'Fake Data ' + dataSet,
-                    type: 'line',
-                    smooth: true,
-                    symbol: 'none',
-                    sampling: 'lttb',
-                    data: this.dataArray[this.dataArray.length-1]
-                }
-            );
-        }
-    }
-
-    onDiagramLabelClick() {
-        const data = [Math.random() * 300];
-
-        for (let i = 1; i < 20000; i++) {
-            data.push(Math.round((Math.random() - 0.5) * 20 + data[i - 1]));
-        }
-
-        this.dataArray.push(data);
-
-        this.chartOptions.series.push(
-            {
-                name: 'Fake Data x',
-                type: 'line',
-                smooth: true,
-                symbol: 'none',
-                sampling: 'lttb',
-                data: this.dataArray[this.dataArray.length-1]
-            });
-
-        
-        const chartContainer = this.elementRef.nativeElement.querySelector('#chart-container');
-        if(chartContainer) {
-            const chart = echarts.getInstanceByDom(chartContainer);
-            chart?.setOption(this.chartOptions);
-        }
-
-        /*
-        var chartDom = document.getElementById('chart-container')!;
-        var myChart = echarts.init(chartDom, 'dark');
-        myChart.setOption(this.chartOptions);
-        */
-    }
-
+    
     initGaugeChartOptions() {
-        this.options = { // source: https://echarts.apache.org/en/option.html
+        this.gaugeChartOptions1 = this.getDefaultGaugeChartOptions();
+        this.gaugeChartOptions2 = this.getDefaultGaugeChartOptions();
+    }
+
+    getDefaultGaugeChartOptions() {
+        return { // source: https://echarts.apache.org/en/option.html
             series: [
                 {
                     type: 'gauge',
                     clockwise: true,
-                    min: 40,
-                    max: 200,
+                    min: -20,
+                    max: 60,
                     radius: '95%',
                     startAngle: 225, // ez a default érték hogy bal oldalon milyen szöggel kezdődjön
                     endAngle: -45,
                     splitNumber: 16, //ennyi felé osztja el min és max közötti tartományt
                     //colorBy: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
                     detail: {
-                        formatter: "{value}W" // ezzel mondom meg a mértékegység fomázását
+                        formatter: "{value} °C" // ezzel mondom meg a mértékegység fomázását
                     },
                     data: [{ 
-                        value: 150, 
-                        name: 'Energy' 
+                        value: 42, 
+                        name: 'Hőmérséklet' 
                     }],
                     axisLine: { // a külső gyűrű tulajdonságai
                         show: true, //látszik-e a külső "gyűrű" mint vonal
                         roundCap: true, // a vonal végeket lekerekítjük vagy ne
                         lineStyle: { 
                             color: [
-                                [0.1, 'rgba(255, 0, 0, 0.5)'], // 0~10% is red
-                                [0.2, 'rgba(255, 128, 0, 0.5)'],  
-                                [0.3, 'rgba(255, 255, 0, 0.5)'],  
-                                [0.3, 'rgba(0, 0, 255, 0.5)'],  
-                                [1.0, 'green'], 
+                                [0.7, 'green'], // 0~10% is red
+                                [0.8, 'rgba(255, 255, 0, 0.5)'],    
+                                [0.9, 'rgba(255, 128, 0, 0.5)'],    
+                                [1.0, 'rgba(255, 0, 0, 0.5)'], 
                             ], 
                             width: 15, // gyűrű vastagság
                             shadowColor: 'rgba(128, 255, 128, 0.8)', //árnyák színe
@@ -425,7 +500,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         show : true,
                         distance : 25,
                         rotate : 'tangential', // -90-+90, 'radial', 'tangential'
-                        formatter : '{value}A', 
+                        formatter : '{value}°',
                         /*color , fontStyle , fontWeight , fontFamily , fontSize , lineHeight , 
                         backgroundColor , borderColor , borderWidth , borderType , borderDashOffset ,
                         borderRadius , padding , shadowColor , shadowBlur , shadowOffsetX , shadowOffsetY,
@@ -446,69 +521,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
             ],
         };
     }
-    
-    initChart() {
-        const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--text-color');
-        const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
-        const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
-        
-        this.chartData2 = {
-            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-            datasets: [
-                {
-                    label: 'Cella 1 eltérések',
-                    data: [6, 9, 8, 1, 5, 5, 4, 6, 9, 10, 8, 5],
-                    fill: false,
-                    backgroundColor: documentStyle.getPropertyValue('--bluegray-700'),
-                    borderColor: documentStyle.getPropertyValue('--bluegray-700'),
-                    tension: .4
-                },
-                {
-                    label: 'Cella 2 eltérések',
-                    data: [2, 4, 4, 9, 8, 2, 9, 2, 8, 4, 1, 6],
-                    fill: false,
-                    backgroundColor: documentStyle.getPropertyValue('--green-600'),
-                    borderColor: documentStyle.getPropertyValue('--green-600'),
-                    tension: .4
-                }
-            ]
-        };
-
-        this.pChartOptions = {
-            plugins: {
-                legend: {
-                    labels: {
-                        color: textColor
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        color: surfaceBorder,
-                        drawBorder: false
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        color: surfaceBorder,
-                        drawBorder: false
-                    }
-                }
-            }
-        };
-    }
-    
+                                        
     ngOnDestroy() {
         if (this.subscription) {
             this.subscription.unsubscribe();
         }
     }
 }
+                                    

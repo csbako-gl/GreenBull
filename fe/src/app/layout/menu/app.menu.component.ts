@@ -21,24 +21,29 @@ export class AppMenuComponent implements OnInit {
                 ]
             },
             {
-                label: 'Prime Blocks',
-                items: [
-                    { label: 'Free Blocks', icon: 'pi pi-fw pi-eye', routerLink: ['/blocks'], badge: 'NEW' }
-                ]
-            },
-            {
                 label: 'Pages',
                 icon: 'pi pi-fw pi-briefcase',
                 items: [
                     {
-                        label: 'Landing',
-                        icon: 'pi pi-fw pi-globe',
-                        routerLink: ['/landing']
+                        label: 'My Devices',
+                        icon: 'pi pi-fw pi-building',
+                        routerLink: ['/pages/devices']
+                    },
+                ]
+            },
+            {
+                label: 'Admin',
+                icon: 'pi pi-fw pi-briefcase',
+                items: [
+                    {
+                        label: 'User Admin',
+                        icon: 'pi pi-fw pi-user-edit',
+                        routerLink: ['/under-construction']
                     },
                     {
-                        label: 'Crud',
-                        icon: 'pi pi-fw pi-pencil',
-                        routerLink: ['/pages/crud']
+                        label: 'Devices Types',
+                        icon: 'pi pi-fw pi-building',
+                        routerLink: ['/under-construction']
                     },
                 ]
             },

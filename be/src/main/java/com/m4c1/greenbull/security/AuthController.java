@@ -12,13 +12,11 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.*;
 
+import static com.m4c1.greenbull.ApplicationConstants.*;
+
 @Slf4j
 @Controller
 public class AuthController {
-
-    private final String USER_NAME = "username";
-    private final String PASSWORD = "password";
-    private final String PW2FA = "2fa";
 
     @Autowired
     private UserSecurityService userSecurityService;

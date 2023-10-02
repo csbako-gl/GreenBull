@@ -2,8 +2,8 @@ package com.m4c1.greenbull.security.listener;
 
 
 import com.m4c1.greenbull.security.OnRegistrationCompleteEvent;
+import com.m4c1.greenbull.security.UserSecurityService;
 import com.m4c1.greenbull.security.user.User;
-import com.m4c1.greenbull.security.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @Component
 public class RegistrationListener implements ApplicationListener<OnRegistrationCompleteEvent> {
     @Autowired
-    private UserService service;
+    private UserSecurityService userSecurityService;
 
     @Autowired
     private MessageSource messages;
@@ -41,7 +41,7 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
     private void confirmRegistration(final OnRegistrationCompleteEvent event) {
         final User user = event.getUser();
         final String token = UUID.randomUUID().toString();
-        service.createVerificationTokenForUser(user, token);
+        userSecurityService.createVerificationTokenForUser(user, token);
 
         final SimpleMailMessage email = constructEmailMessage(event, user, token);
         try{

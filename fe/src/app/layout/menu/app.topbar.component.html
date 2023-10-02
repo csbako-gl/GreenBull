@@ -1,11 +1,11 @@
 <div class="layout-topbar">
-    <a class="layout-topbar-logo" routerLink="">
-        <img src="assets/layout/images/{{layoutService.config.colorScheme === 'light' ? 'logo-dark' : 'logo-light'}}.svg" alt="logo">
-    </a>
-
     <button #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
         <i class="pi pi-bars"></i>
     </button>
+
+    <a class="layout-topbar-logo" routerLink="">
+        <img src="assets/layout/images/{{layoutService.config.colorScheme === 'light' ? 'logo-dark' : 'logo-light'}}.svg" alt="logo">
+    </a>
 
     <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button" (click)="layoutService.showProfileSidebar()">
         <i class="pi pi-ellipsis-v"></i>
@@ -19,25 +19,20 @@
             </button>
             <div class="menu-list" [ngClass]="{'show': isMenuVisible}">
                 <ul>
-                    <li>
+                    <li [routerLink]="['/under-construction']"> <!--(click)="onTopbarUser()"-->
                         <i class="pi pi-user"></i>
-                        <span>Menüelem 1</span> <!-- PrimeNG ikon az almenüben -->
+                        <span>User</span> <!-- PrimeNG ikon az almenüben -->
                     </li>
-                    <li>
+                    <li [routerLink]="['/under-construction']">
                         <i class="pi pi-cog"></i>
-                        <span>Menüelem 2</span> <!-- PrimeNG ikon az almenüben -->
+                        <span>Settings</span> <!-- PrimeNG ikon az almenüben -->
                     </li>
                     <li (click)="onTopbarLogout()">
-                        <i class="pi pi-cog"></i>
+                        <i class="pi pi-sign-out"></i>
                         <span>Logout</span> <!-- PrimeNG ikon az almenüben -->
                     </li>
-                    <!-- stb. -->
                 </ul>
             </div>
         </div>
-        <button class="p-link layout-topbar-button" [routerLink]="'/documentation'">
-            <i class="pi pi-cog"></i>
-            <span>Settings</span>
-        </button>
     </div>
 </div>

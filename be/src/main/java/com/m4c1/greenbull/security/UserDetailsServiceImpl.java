@@ -40,7 +40,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         try {
-            final User user = userRepository.findByEmail(email);
+            final User user = userRepository.findByEmail(email).orElse(null);
             if (user == null) {
                 throw new UsernameNotFoundException("No user found with username: " + email);
             }
@@ -57,7 +57,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     // UTIL
 
-    private Collection<? extends GrantedAuthority> getAuthorities(final Collection<Role> roles) {
+    public Collection<? extends GrantedAuthority> getAuthorities(final Collection<Role> roles) {
         return getGrantedAuthorities(getPrivileges(roles));
     }
 

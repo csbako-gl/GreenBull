@@ -1,5 +1,5 @@
 import { Action, createAction, props } from '@ngrx/store';
-import { User } from 'src/app/model/user.model';
+import { User, UserCreateData } from 'src/app/model/user.model';
 
 export enum AuthActions {
     NONE = '[AUTH] None',
@@ -11,6 +11,8 @@ export enum AuthActions {
     LOGIN2FANEEDED = '[AUTH] Login2fa needed',
     LOGOUT = '[AUTH] Logout',
     CREATE_USER = '[AUTH] Create User',
+    CREATE_USER_FAILURE = '[AUTH] Create User Failure',
+    CREATE_USER_SUCCESS = '[AUTH] Create User Success',
     ENABLE_2FA = '[AUTH] Enable 2FA',
 }
 
@@ -26,6 +28,21 @@ export const loginActionSuccess = createAction(
 
 export const loginActionFailure = createAction(
     AuthActions.LOGIN_FAILURE,
+    props<{ data: any }>()
+);
+
+export const createUserAction = createAction(
+    AuthActions.CREATE_USER,
+    props<{ userdata: UserCreateData }>()
+);
+
+export const createUserActionSuccess = createAction(
+    AuthActions.CREATE_USER_SUCCESS,
+    props<{ user: User }>()
+);
+
+export const createUserActionFailure = createAction(
+    AuthActions.CREATE_USER_FAILURE,
     props<{ data: any }>()
 );
 

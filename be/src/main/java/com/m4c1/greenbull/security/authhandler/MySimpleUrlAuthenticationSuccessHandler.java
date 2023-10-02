@@ -42,18 +42,20 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
     public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response, final Authentication authentication) throws IOException {
         log.warn("Authentication Success.");
         handle(request, response, authentication);
+
         final HttpSession session = request.getSession(false);
+
+        String username;
+        if (authentication.getPrincipal() instanceof User user) {
+            username = user.getEmail();
+        } else if(authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User user) {
+            username = user.getUsername();
+        } else {
+            username = authentication.getName();
+        }
+        LoggedUser user = new LoggedUser(username, activeUserStore);
         if (session != null) {
             session.setMaxInactiveInterval(30 * 60);
-
-            String username;
-            if (authentication.getPrincipal() instanceof User) {
-                username = ((User)authentication.getPrincipal()).getEmail();
-            }
-            else {
-                username = authentication.getName();
-            }
-            LoggedUser user = new LoggedUser(username, activeUserStore);
             session.setAttribute("user", user);
         }
         clearAuthenticationAttributes(request);
@@ -76,10 +78,10 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
         final String targetUrl = determineTargetUrl(authentication);
 
         if (response != null && response.isCommitted()) {
-            logger.debug("Response has already been committed. Unable to redirect to " + targetUrl);
-            return;
+            logger.debug("Response has already been committed. Unable to redirect to {}", targetUrl);
+        } else {
+            //redirectStrategy.sendRedirect(request, response, targetUrl);
         }
-        //redirectStrategy.sendRedirect(request, response, targetUrl);
     }
 
     protected String determineTargetUrl(final Authentication authentication) {
@@ -97,8 +99,8 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
         }
         if (isUser) {
             String username;
-            if (authentication.getPrincipal() instanceof User) {
-                username = ((User)authentication.getPrincipal()).getEmail();
+            if (authentication.getPrincipal() instanceof User user) {
+                username = user.getEmail();
             }
             else {
                 username = authentication.getName();

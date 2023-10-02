@@ -8,6 +8,8 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 //import { AuthActions } from '../auth/state/auth.actions';
 import { Store } from '@ngrx/store';
 import { BehaviorSubject } from 'rxjs';
+import { UserCreateData } from '../model/user.model';
+import { ApiResponse } from '../model/api.response.model';
 
 @Injectable({providedIn: "root"})
 export class AuthService {
@@ -46,11 +48,14 @@ export class AuthService {
         return this.apiService.post(`/user/update/2fa?use2FA=${enable}`);
     }
 
-    register(user: string, pw: string) {
+    register(userdata: UserCreateData) {
+        //console.log('reg: un:' + userdata.username + ' pw:' + userdata.password);
         const formData = new FormData();
-        formData.append('username', user);
-        formData.append('password', pw);
-        formData.append('submit', 'Submit');
+        formData.append('email', userdata.username);
+        formData.append('firstName', userdata.firstname);
+        formData.append('lastName', userdata.lastname);
+        formData.append('password', userdata.password);
+        formData.append('matchingPassword', userdata.matchingPassword);
         return this.apiService.post('/user/registration', formData);
     }
 
@@ -59,5 +64,10 @@ export class AuthService {
         // Check whether the token is expired and return
         // true or false
         return !this.jwtHelper.isTokenExpired(token);
+    }
+
+    loggedUser() {
+        const formData = new FormData();
+        return this.apiService.get('/user/logged', formData);
     }
 }

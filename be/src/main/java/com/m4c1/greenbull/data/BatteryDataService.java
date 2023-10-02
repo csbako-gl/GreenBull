@@ -3,6 +3,7 @@ package com.m4c1.greenbull.data;
 import com.m4c1.greenbull.device.DeviceRepository;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,14 @@ public class BatteryDataService {
 
     public List<BatteryData> findByDeviceId(Long deviceId) {
         return batteryDataRepository.findByDeviceId(deviceId);
+    }
+
+    public Optional<BatteryData> findLastByDeviceId(Long deviceId) {
+        return batteryDataRepository.findLastByDeviceId(deviceId);
+    }
+
+    public List<BatteryData> findByDeviceIdLimited(Long deviceId, Long count) {
+        return batteryDataRepository.findByDeviceIdLimited(deviceId, count);
     }
 
     public List<BatteryData> findByDeviceIdFromDate(Long deviceId, Date dateFrom) {

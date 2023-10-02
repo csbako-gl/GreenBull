@@ -1,6 +1,7 @@
 package com.m4c1.greenbull.security.jwt;
 
 
+import com.m4c1.greenbull.security.user.User;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -18,6 +19,9 @@ public class JwtUtil {
 
     @Value("${app.security.jwt-secret}")
     private String SECRET_KEY;
+
+    @Value("${app.security.jwtExpirationMs:#{T(java.lang.Long).valueOf('3600000')}}") // 1000 * 60 * 60 * 10 = 10 hour
+    private Long EXPIRATION_MS;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -61,15 +65,15 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token, User userDetails) {
         final String username = extractUsername(token);
         return (
-                username.equals(userDetails.getUsername()) && !isTokenExpired(token)
+                username.equals(userDetails.getEmail()) && !isTokenExpired(token)
         );
     }
 }

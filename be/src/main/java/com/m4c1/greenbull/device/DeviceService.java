@@ -1,5 +1,11 @@
 package com.m4c1.greenbull.device;
 
+import com.m4c1.greenbull.security.UserSecurityService;
+import com.m4c1.greenbull.security.user.ActiveUserStore;
+import com.m4c1.greenbull.security.user.User;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +16,12 @@ public class DeviceService {
 
     @Autowired
     DeviceRepository deviceRepository;
+
+    @Autowired
+    UserSecurityService userSecurityService;
+
+    @Autowired
+    DeviceTypeRepository deviceTypeRepository;
 
     public long registerDevice(Device device) {
         device = deviceRepository.save(device);
@@ -25,4 +37,32 @@ public class DeviceService {
         deviceRepository.save(device);
     }
 
+    public List<Device> findAll() {
+        return null;
+        //activeUserStore.
+    }
+
+    public List<DeviceDto> findByUser() {
+        User user = userSecurityService.getCurrentUser();
+        if (user == null) {
+            return null;
+        }
+
+        List<DeviceDto> deviceDtos = new ArrayList<>();
+        List<Device> devices = deviceRepository.findByUserId(user.getId());
+        devices.forEach(device -> {
+            Optional<DeviceType> deviceType = deviceTypeRepository.findById(device.getTypeId());
+            deviceType.ifPresent(type -> deviceDtos.add(DeviceDto.builder()
+                    .id(device.getId())
+                    .typeId(device.getTypeId())
+                    .label(device.getName())
+                    .name(type.getName())
+                    .manufacture(type.getManufacture())
+                    .description(type.getDescription())
+                    .otherData(type.getOtherData())
+                    .build()));
+        });
+
+        return deviceDtos;
+    }
 }

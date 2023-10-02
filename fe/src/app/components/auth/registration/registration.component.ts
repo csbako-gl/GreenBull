@@ -4,7 +4,7 @@ import { AuthService } from 'src/app/service/authservice';
 import { Store } from '@ngrx/store';
 import { AuthActions } from 'src/app/auth/state/auth.actions';
 import * as selectors from 'src/app/auth/state/auth.selectors';
-import { User } from 'src/app/model/user.model';
+import { User, UserCreateData } from 'src/app/model/user.model';
 
 @Component({
     selector: 'app-registration',
@@ -57,12 +57,12 @@ export class RegistrationComponent implements OnInit {
     }
 
     onSignUp() {
-        const user = {
+        const user: UserCreateData = {
             username: this.username, 
             password: this.password, 
             matchingPassword : this.password2, 
-            firstName: this.firstname, 
-            lastName: this.lastname
+            firstname: this.firstname, 
+            lastname: this.lastname
         };
         this.store.dispatch({type: AuthActions.CREATE_USER, payload: user});
     }

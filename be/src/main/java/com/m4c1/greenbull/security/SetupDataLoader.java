@@ -99,7 +99,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     }
 
     private User createUserIfNotFound(final String email, final String firstName, final String lastName, final String password, final Collection<Role> roles) {
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
             user = new User();
             user.setFirstName(firstName);

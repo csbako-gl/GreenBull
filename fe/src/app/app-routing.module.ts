@@ -7,6 +7,7 @@ import { AppLayoutComponent } from "./layout/app.layout.component";
 // custom components
 import { AuthGuard } from './auth/guard/auth.guard';
 import {AppLoginExtComponent} from './pages/auth/app.login.ext.component';
+import { UnderConstructionComponent } from './components/under_construction/under.construction.component';
 
 // TODO itt majd hozzá kell adni a saját oldalakat
 
@@ -24,6 +25,7 @@ const routes: Routes = [
     { path: 'auth', loadChildren: () => import('./components/auth/auth.module').then(m => m.AuthModule) },
     { path: 'landing', loadChildren: () => import('./components/landing/landing.module').then(m => m.LandingModule) },
     { path: 'notfound', component: NotfoundComponent },
+    { path: 'under-construction', component: UnderConstructionComponent },
     { path: '**', redirectTo: '/notfound' },
 ];
 
@@ -40,6 +42,6 @@ const routes: Routes = [
 })
 export class AppRoutingModule {
     constructor() {
-        console.log('itt valami átirányitás vót');
+        //console.log('itt valami átirányitás vót');
     }
 }

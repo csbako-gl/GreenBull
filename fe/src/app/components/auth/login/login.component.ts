@@ -59,7 +59,7 @@ export class LoginComponent implements OnInit {
     }
 
     onSignIn() {
-        console.log("onSignIn un:" + this.username + " pw:" + this.password);
+        //console.log("onSignIn un:" + this.username + " pw:" + this.password);
         const user: User = {username: this.username, password: this.password};
         this.store.dispatch({type: AuthActions.LOGIN, payload: user});
         return;

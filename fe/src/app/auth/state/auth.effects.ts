@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { map, mergeMap, catchError, tap } from 'rxjs/operators';
 import { AuthService } from 'src/app/service/authservice';
-import { User } from 'src/app/model/user.model';
+import { User, UserCreateData } from 'src/app/model/user.model';
 import { AuthActions } from './auth.actions';
 
 @Injectable()
@@ -115,13 +115,40 @@ export class AuthEffects {
     createUser$ = createEffect(() => {
         return this.actions$.pipe(
             ofType(AuthActions.CREATE_USER),
-            mergeMap(((data: {type: string, payload: User}) => this.authService.register(data.payload.username, data.payload.password)
+            mergeMap(((data: {type: string, payload: UserCreateData}) => this.authService.register(data.payload)
             .pipe(
-                tap(() =>  this.router.navigate(['auth/login'])),
-                catchError(async (data) => ({ type: AuthActions.LOGIN_FAILURE, error: data.error }))
-            ))
+                map(data => {
+                    switch (data.status) {
+                        case 'success': return { type: AuthActions.CREATE_USER_SUCCESS, payload: {username: data.data, password:''} };
+                        case 'invalid_user_pw': return { type: AuthActions.CREATE_USER_FAILURE, username: data.data };
+                        default: return { type: AuthActions.CREATE_USER_FAILURE, token: data.token };
+                    }
+                }),
+                catchError(async (data) => ({ type: AuthActions.CREATE_USER_FAILURE, error: data.error }))
+                ))
             ))
         }, {dispatch: true}
+    );
+
+    createUserSuccess$ = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(AuthActions.CREATE_USER_SUCCESS),
+            tap((data) => {
+                this.router.navigate(['auth/login'])
+            }),
+            )
+        }, {dispatch: false}
+    );
+
+
+    createUserFailure$ = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(AuthActions.CREATE_USER_FAILURE),
+            tap((data) => {
+                this.authService.invalidate(true);
+            }),
+            )
+        }, {dispatch: false}
     );
 
     constructor(

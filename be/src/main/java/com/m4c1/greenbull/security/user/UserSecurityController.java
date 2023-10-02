@@ -26,11 +26,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
+import static com.m4c1.greenbull.ApplicationConstants.*;
+
 @Slf4j
 @RestController
 @RequestMapping({ "/user" })
 public class UserSecurityController {
-    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private UserService userService;
@@ -47,27 +48,42 @@ public class UserSecurityController {
     @Autowired
     private Environment env;
 
+    @Autowired
+    ActiveUserStore activeUserStore;
+
 
     @PostMapping("/registration")
-    public ResponseEntity<?> registration(
+    public RestResponse<String> registration(
             final HttpServletRequest request,
-            @Valid @RequestBody UserDto accountDto
+            @RequestBody final Optional<String> msg
+    ) {
+        log.debug("Registering user account with information: {}", request.getParameter(USER_NAME));
+        return userSecurityService.registerNewUserAccount( UserDto.builder()
+                .email(request.getParameter(EMAIL))
+                .password(request.getParameter(PASSWORD))
+                .matchingPassword(request.getParameter(MATCHING_PASSWORD))
+                .firstName(request.getParameter(FIRST_NAME))
+                .lastName(request.getParameter(LAST_NAME))
+                .build(),
+                request);
+    }
+
+    @GetMapping("/logged")
+    public RestResponse<String> logged(
+            final HttpServletRequest request,
+            @RequestBody final Optional<String> msg
     ) throws ServletException, IOException {
-
-        log.debug("Registering user account with information: {}", accountDto);
-
-        final RestResponse<String> body = userSecurityService.registerNewUserAccount(accountDto, request);
-
-        return ResponseEntity.ok()
-                .body(body);
+        log.debug("Logged user");
+        User user = userSecurityService.getCurrentUser();
+        return RestResponse.<String>builder().data(user.getEmail()).build();
     }
 
 
     // User activation - verification
     @GetMapping("/resendRegistrationToken")
     public GenericResponse resendRegistrationToken(final HttpServletRequest request, @RequestParam("token") final String existingToken) {
-        final VerificationToken newToken = userService.generateNewVerificationToken(existingToken);
-        final User user = userService.getUser(newToken.getToken());
+        final VerificationToken newToken = userSecurityService.generateNewVerificationToken(existingToken);
+        final User user = userSecurityService.getUser(newToken.getToken());
         mailSender.send(constructResendVerificationTokenEmail(userSecurityService.getAppUrl(request), request.getLocale(), newToken, user));
         return new GenericResponse(messages.getMessage("message.resendToken", null, request.getLocale()));
     }
@@ -78,7 +94,7 @@ public class UserSecurityController {
         final User user = userService.findUserByEmail(userEmail);
         if (user != null) {
             final String token = UUID.randomUUID().toString();
-            userService.createPasswordResetTokenForUser(user, token);
+            userSecurityService.createPasswordResetTokenForUser(user, token);
             mailSender.send(constructResetTokenEmail(userSecurityService.getAppUrl(request), request.getLocale(), token, user));
         }
         return new GenericResponse(messages.getMessage("message.resetPasswordEmail", null, request.getLocale()));
@@ -94,9 +110,9 @@ public class UserSecurityController {
             return new GenericResponse(messages.getMessage("auth.message." + result, null, locale));
         }
 
-        Optional<User> user = userService.getUserByPasswordResetToken(passwordDto.getToken());
+        Optional<User> user = userSecurityService.getUserByPasswordResetToken(passwordDto.getToken());
         if(user.isPresent()) {
-            userService.changeUserPassword(user.get(), passwordDto.getNewPassword());
+            userSecurityService.changeUserPassword(user.get(), passwordDto.getNewPassword());
             return new GenericResponse(messages.getMessage("message.resetPasswordSuc", null, locale));
         } else {
             return new GenericResponse(messages.getMessage("auth.message.invalid", null, locale));
@@ -107,23 +123,23 @@ public class UserSecurityController {
     @PostMapping("/updatePassword")
     public GenericResponse changeUserPassword(final Locale locale, @Valid PasswordDto passwordDto) {
         final User user = userService.findUserByEmail(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getEmail());
-        if (!userService.checkIfValidOldPassword(user, passwordDto.getOldPassword())) {
+        if (!userSecurityService.checkIfValidOldPassword(user, passwordDto.getOldPassword())) {
             throw new InvalidOldPasswordException();
         }
-        userService.changeUserPassword(user, passwordDto.getNewPassword());
+        userSecurityService.changeUserPassword(user, passwordDto.getNewPassword());
         return new GenericResponse(messages.getMessage("message.updatePasswordSuc", null, locale));
     }
 
     // Change user 2 factor authentication
     @PostMapping("/update/2fa")
     public RestResponse<String> modifyUser2FA(@RequestParam("use2FA") final boolean use2FA) throws UnsupportedEncodingException {
-        final User user = userService.updateUser2FA(use2FA);
+        final User user = userSecurityService.updateUser2FA(use2FA);
         if(user== null) {
             return RestResponse.<String>builder().error("There is no active user").build();
         }
         log.debug("user change 2FA to: {}", use2FA ? "enabled" : "disabled");
         return RestResponse.<String>builder()
-                .data(use2FA ? userService.generateQRUrl(user) : "")
+                .data(use2FA ? userSecurityService.generateQRUrl(user) : "")
                 .message("")
                 .build();
     }

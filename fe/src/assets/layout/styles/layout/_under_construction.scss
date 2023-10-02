@@ -1,0 +1,14 @@
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.under-construction-ground {
+    height: 100%;
+    background: url('../../../images/uc/background.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

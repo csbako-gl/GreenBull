@@ -2,11 +2,14 @@ package com.m4c1.greenbull.security.jwt;
 
 
 import com.m4c1.greenbull.security.UserDetailsServiceImpl;
+import com.m4c1.greenbull.security.user.User;
+import com.m4c1.greenbull.security.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +26,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    private UserService userService;
 
     private final JwtUtil jwtUtil;
 
@@ -43,13 +49,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            User user = userService.findUserByEmail(username);
 
-            if (jwtUtil.validateToken(token, userDetails)) {
+            if (jwtUtil.validateToken(token, user)) {
                 var usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        user,
                         null,
-                        userDetails.getAuthorities()
+                        userDetailsService.getAuthorities(user.getRoles())
                 );
                 usernamePasswordAuthenticationToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)

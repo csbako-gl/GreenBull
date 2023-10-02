@@ -76,7 +76,8 @@ public class LssSecurityConfig {
                                         "/swagger-resources/**",
                                         "/swagger**",
                                         "/webjars/**", // swagger
-                                        "/user/registration*",
+                                        "/user/registration**",
+                                        "/user/registration/**",
                                         "/user/resendRegistrationToken*",
                                         "/user/resetPassword*",
                                         "/user/savePassword*",

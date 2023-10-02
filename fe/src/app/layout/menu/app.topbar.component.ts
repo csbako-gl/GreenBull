@@ -5,6 +5,7 @@ import { Renderer2, HostListener } from '@angular/core';
 import { AuthActions } from '../../auth/state/auth.actions';
 import { AuthService } from '../../service/authservice';
 import { Store } from '@ngrx/store';
+import { ApiResponse } from 'src/app/model/api.response.model';
 
 
 @Component({
@@ -28,10 +29,11 @@ export class AppTopBarComponent {
         public layoutService: LayoutService, 
         private renderer: Renderer2,
         private store: Store,
+        private authService: AuthService
         ) { }
 
     toggleMenu() {
-        console.log('váltáska');
+        //console.log('váltáska');
         this.isMenuVisible = !this.isMenuVisible;
     }
 
@@ -50,4 +52,23 @@ export class AppTopBarComponent {
     onTopbarLogout() {
         this.store.dispatch({type: AuthActions.LOGOUT, payload: {}});
     }
+
+    onTopbarSettings() {
+        
+    }
+
+    onTopbarUser() {
+        this.authService.loggedUser().subscribe((resp : ApiResponse) => {
+            console.log('onTopbarUser');
+            let users: any = '';
+            if(resp?.data.length > 0) {
+                users = resp.data;
+            }
+            
+            // this is the MAGIC!!!
+            //this.ugyletek = [...this.ugyletek];
+            console.dir(users);
+        });
+    }
+
 }

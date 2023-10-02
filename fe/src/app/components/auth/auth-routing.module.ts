@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { NotfoundComponent } from '../notfound/notfound.component';
+import { UnderConstructionComponent } from '../under_construction/under.construction.component';
 
 @NgModule({
     imports: [RouterModule.forChild([
@@ -9,6 +10,7 @@ import { NotfoundComponent } from '../notfound/notfound.component';
         { path: 'access', loadChildren: () => import('./access/access.module').then(m => m.AccessModule) },
         { path: 'login', loadChildren: () => import('./login/login.module').then(m => m.LoginModule) },
         { path: 'notfound', component: NotfoundComponent },
+        { path: 'under-construction', component: UnderConstructionComponent },
         { path: '**', redirectTo: '/notfound' }
     ])],
     exports: [RouterModule]

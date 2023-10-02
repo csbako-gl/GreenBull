@@ -5,14 +5,15 @@ import com.m4c1.greenbull.security.validation.ValidEmail;
 import com.m4c1.greenbull.security.validation.ValidPassword;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
 @PasswordMatches
+@Builder
 public class UserDto {
-
 
     @NotNull
     @Size(min = 1, message = "{Size.userDto.firstName}")
@@ -22,14 +23,14 @@ public class UserDto {
     @Size(min = 1, message = "{Size.userDto.lastName}")
     private String lastName;
 
-    @ValidPassword
+    /*@ValidPassword*/
     private String password;
 
     @NotNull
     @Size(min = 1)
     private String matchingPassword;
 
-    @ValidEmail
+    /*@ValidEmail*/
     @NotNull
     @Size(min = 1, message = "{Size.userDto.email}")
     private String email;

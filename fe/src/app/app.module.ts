@@ -35,6 +35,7 @@ import {HeaderInterceptor} from './interceptors/header.interceptor'
 
 
 import {AppLoginExtComponent} from './pages/auth/app.login.ext.component';
+import { UnderConstructionComponent } from './components/under_construction/under.construction.component';
 //import {AppLogin2faComponent} from './pages/auth/app.login.2fa.component';
 //import {AppRegistrationExtComponent} from './pages/auth/app.registration.component';
 
@@ -61,6 +62,7 @@ const metaReducers: Array<MetaReducer<any, any>> = [localStorageSyncReducer];
     declarations: [
         AppComponent, 
         NotfoundComponent,
+        UnderConstructionComponent,
         AppLoginExtComponent,
     ],
     imports: [

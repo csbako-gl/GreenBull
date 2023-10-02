@@ -63,7 +63,7 @@
     }
 
     .layout-menu-button {
-        margin-left: 2rem;
+        margin-right: 1rem;
     }
 
     .layout-topbar-menu-button {
@@ -87,15 +87,16 @@
 
     .menu-item {
         position: relative;
-      }
+    }
       
     .menu-list {
         background-color: var(--surface-card);
         display: none;
         position: absolute;
+        float: right;
         top: 140%;
-        width: 300%;
-        left: 0;
+        right: 0;
+        //width: 300%;
         z-index: 1; // Add hozzá ezt a sort
     }
       
@@ -106,7 +107,7 @@
 
     .menu-list ul {
         list-style-type: none;
-        padding: 5px;
+        padding: 10px;
         margin: 5px;
     }
       
