@@ -122,8 +122,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.gaugeChartOptions1.series[0].data[0].name = 'BMS Hőmérséklet';
                 this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.szenzorho1;
                 this.gaugeChartOptions2.series[0].data[0].name = '1. Szenzor Hőmérséklet'
-                console.log("this.lastBatteryData.bmshomerseklet");
-                console.dir(this.lastBatteryData.szenzorho1);
+                //console.log("this.lastBatteryData.bmshomerseklet");
+                //console.dir(this.lastBatteryData.szenzorho1);
                 this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
                 this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
             }
@@ -381,7 +381,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }*/
             if(resp?.data?.length > 0) {
                 this.batteryDataArray = resp.data;
-                console.log('battery data count: ' + this.batteryDataArray.length);
+                //console.log('battery data count: ' + this.batteryDataArray.length);
                 for(let item of this.batteryDataArray) {
                     this.dataArray[0].push([item.date, this.getChartValue(item.c1)]);
                     this.dataArray[1].push([item.date, this.getChartValue(item.c2)]);
@@ -458,14 +458,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     }],
                     axisLine: { // a külső gyűrű tulajdonságai
                         show: true, //látszik-e a külső "gyűrű" mint vonal
-                        roundCap: true, // a vonal végeket lekerekítjük vagy ne
+                        roundCap: false, // a vonal végeket lekerekítjük vagy ne
                         lineStyle: { 
-                            color: [
-                                [0.7, 'green'], // 0~10% is red
+                            color: (function() {
+                                /*[0.7, 'green'], 'rgba(0, 255, 0)
                                 [0.8, 'rgba(255, 255, 0, 0.5)'],    
-                                [0.9, 'rgba(255, 128, 0, 0.5)'],    
-                                [1.0, 'rgba(255, 0, 0, 0.5)'], 
-                            ], 
+                                [0.9, 'rgba(255, 128, 0)'],    
+                                [1.0, 'rgba(255, 0, 0)']*/
+                                var colorStops = [];
+                                colorStops.push([0.7, 'rgba(117,220,117,1)']); // rgba(117,191,117)
+                                for (var i = 70; i <= 100; i++) {
+                                    var percent = (i - 70) / (100 - 70);
+                                    var red = Math.min(Math.round(255 * percent * 2), 255);
+                                    var green = Math.min(Math.round(255*2 - 255 * (percent) * 2), 255);
+                                    var color = 'rgba(' + red + ',' + green + ',1)';
+                                    colorStops.push([i/100, color]);
+                                }
+                                //console.dir(colorStops);
+                                return colorStops;
+                            })(), 
                             width: 15, // gyűrű vastagság
                             shadowColor: 'rgba(128, 255, 128, 0.8)', //árnyák színe
                             shadowBlur: 30, // árnyék szélessége

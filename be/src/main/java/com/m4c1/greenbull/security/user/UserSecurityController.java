@@ -69,13 +69,13 @@ public class UserSecurityController {
     }
 
     @GetMapping("/logged")
-    public RestResponse<String> logged(
+    public RestResponse<LoggedUserDto> logged(
             final HttpServletRequest request,
             @RequestBody final Optional<String> msg
     ) throws ServletException, IOException {
         log.debug("Logged user");
         User user = userSecurityService.getCurrentUser();
-        return RestResponse.<String>builder().data(user.getEmail()).build();
+        return RestResponse.<LoggedUserDto>builder().data(new LoggedUserDto(user)).build();
     }
 
 

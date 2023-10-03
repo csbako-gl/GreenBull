@@ -6,6 +6,7 @@ import { AuthActions } from '../../auth/state/auth.actions';
 import { AuthService } from '../../service/authservice';
 import { Store } from '@ngrx/store';
 import { ApiResponse } from 'src/app/model/api.response.model';
+import { LoggedUser } from 'src/app/model/user.model';
 
 
 @Component({
@@ -54,21 +55,16 @@ export class AppTopBarComponent {
     }
 
     onTopbarSettings() {
-        
+
     }
 
     onTopbarUser() {
-        this.authService.loggedUser().subscribe((resp : ApiResponse) => {
-            console.log('onTopbarUser');
-            let users: any = '';
-            if(resp?.data.length > 0) {
-                users = resp.data;
+        this.authService.loggedUser().subscribe((user : LoggedUser) => {
+            if (user) {
+                console.dir(user);
             }
-            
+        });
             // this is the MAGIC!!!
             //this.ugyletek = [...this.ugyletek];
-            console.dir(users);
-        });
     }
-
 }

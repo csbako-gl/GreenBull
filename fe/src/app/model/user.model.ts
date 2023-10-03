@@ -10,3 +10,16 @@ export interface UserCreateData {
     password: string;
     matchingPassword: string;
 }
+
+export interface Privilage {
+    id : number;
+    name : string;
+}
+
+export interface LoggedUser {
+    id : number;
+    firstName : string;
+    lastName : string;
+    email : string;
+    privileges : Privilage[];
+}

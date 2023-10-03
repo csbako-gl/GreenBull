@@ -7,13 +7,15 @@ import { Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 //import { AuthActions } from '../auth/state/auth.actions';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject } from 'rxjs';
-import { UserCreateData } from '../model/user.model';
+import { BehaviorSubject, Observable, catchError, map, of } from 'rxjs';
+import { LoggedUser, UserCreateData } from '../model/user.model';
 import { ApiResponse } from '../model/api.response.model';
 
 @Injectable({providedIn: "root"})
 export class AuthService {
     public invalid: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
+    localLoggedUser : LoggedUser | null = null;
 
     constructor(
         private http: HttpClient,
@@ -34,6 +36,10 @@ export class AuthService {
         formData.append('password', pw);
         formData.append('submit', 'Submit');
         return this.apiService.post('/login', formData);
+    }
+
+    logout() {
+        this.localLoggedUser = null;
     }
 
     login2fa(user: string, code: string) {
@@ -66,8 +72,26 @@ export class AuthService {
         return !this.jwtHelper.isTokenExpired(token);
     }
 
-    loggedUser() {
-        const formData = new FormData();
-        return this.apiService.get('/user/logged', formData);
+    loggedUser() :  Observable<LoggedUser> {
+        if (this.localLoggedUser !== null) {
+            // Ha van helyi (cache-ben tárolt) felhasználó, térj vissza vele
+            return of(this.localLoggedUser);
+        } else {
+            const formData = new FormData();
+            return this.apiService.get('/user/logged', formData)
+                .pipe(
+                    map((resp: ApiResponse) => {
+                        const user = resp.data as LoggedUser;
+                        // Tárold el a kapott felhasználót a localLoggedUser változóban
+                        this.localLoggedUser = user;
+                        return user;
+                    }),
+                    catchError(error => {
+                        // Kezeld a hibát, ha szükséges
+                        console.error('Hiba történt a felhasználó lekérésekor:', error);
+                        throw error;
+                    })
+                );
+        }
     }
 }

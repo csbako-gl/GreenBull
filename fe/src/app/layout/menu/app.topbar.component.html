@@ -19,7 +19,7 @@
             </button>
             <div class="menu-list" [ngClass]="{'show': isMenuVisible}">
                 <ul>
-                    <li [routerLink]="['/under-construction']"> <!--(click)="onTopbarUser()"-->
+                    <li (click)="onTopbarUser()"> <!--(click)="onTopbarUser()"-->
                         <i class="pi pi-user"></i>
                         <span>User</span> <!-- PrimeNG ikon az almenüben -->
                     </li>
