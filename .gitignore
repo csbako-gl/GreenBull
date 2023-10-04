@@ -2,3 +2,5 @@
 
 ### VS Code ###
 .vscode/
+./k8s/
+./.idea
