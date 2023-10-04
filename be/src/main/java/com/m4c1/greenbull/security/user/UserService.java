@@ -38,7 +38,7 @@ public class UserService {
     }
 
     public boolean emailExists(final String email) {
-        return userRepository.findByEmail(email) != null;
+        return userRepository.findByEmail(email).isPresent();
     }
 
     public void delete(User user) {
