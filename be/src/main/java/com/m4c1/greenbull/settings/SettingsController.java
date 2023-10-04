@@ -17,6 +17,11 @@ public class SettingsController {
     @Autowired
     private SettingsService settingsService;
 
+    @GetMapping("/test")
+    public RestResponse<String> test() {
+        return RestResponse.<String>builder().data("OK").build();
+    }
+
     @GetMapping("/get")
     public RestResponse<Settings> get() {
         return RestResponse.<Settings>builder().data(settingsService.getSettings()).build();
