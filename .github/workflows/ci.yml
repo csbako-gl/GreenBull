@@ -1,8 +1,9 @@
 name: Greenbull CI
 
 on:
-  push:
-    branches: [ "main" ]
+  create:
+    tag: #  SemVer 2.0 regex
+      - '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 
 jobs:
 
@@ -10,12 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name:
       - name: Build Greenbull backend module
-        run: docker build ./be/ --file ./be/Dockerfile --tag greenbull-backend:$(date +%s)
+        run: docker build ./be/ --file ./be/Dockerfile --tag "greenbull-backend:${{ vars.GITHUB_REF_NAME }}"
 
   build-fe:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Build Greenbull frontend module
-        run: docker build ./fe/ --file ./fe/Dockerfile --tag greenbull-frontend:$(date +%s)
+        run: docker build ./fe/ --file ./fe/Dockerfile --tag "greenbull-frontend:${{ vars.GITHUB_REF_NAME }}"
