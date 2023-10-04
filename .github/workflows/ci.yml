@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build Greenbull backend module
-        run: docker build ./be/ --file ./be/Dockerfile --tag "greenbull-backend:${vars.GITHUB_REF_NAME}"
+        run: docker build ./be/ --file ./be/Dockerfile --tag "greenbull-backend:${GITHUB_REF_NAME}"
 
   build-fe:
     runs-on: ubuntu-latest
