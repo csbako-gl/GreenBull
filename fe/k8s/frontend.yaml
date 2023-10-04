@@ -27,7 +27,7 @@ spec:
         spec:
             containers:
                 - name: greenbull-frontend
-                  image: greenbull-registry.kekmoid.com/greenbull-frontend:0.0.4
+                  image: greenbull-registry.kekmoid.com/greenbull-frontend:0.0.6
                   imagePullPolicy: Always
                   env:
                       - name: TZ
