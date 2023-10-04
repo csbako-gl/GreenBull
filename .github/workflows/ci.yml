@@ -7,12 +7,15 @@ on:
 jobs:
 
   build-be:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Build Greenbull backend module
         run: docker build ./be/ --file ./be/Dockerfile --tag greenbull-backend:$(date +%s)
+
+  build-fe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
       - name: Build Greenbull frontend module
         run: docker build ./fe/ --file ./fe/Dockerfile --tag greenbull-frontend:$(date +%s)
