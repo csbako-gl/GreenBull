@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: greenbull-backend
+  labels:
+    stack: greenbull
+    tier: backend
+    app: greenbull
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: greenbull
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        stack: greenbull
+        tier: backend
+        app: greenbull
+    spec:
+      containers:
+        - name: greenbull-backend
+          image: greenbull-registry.kekmoid.com/greenbull-backend:0.0.2
+          imagePullPolicy: Always
+          env:
+            - name: TZ
+              value: "Europe/Budapest"
+          ports:
+            - containerPort: 8080
+              name: backend-port
+          volumeMounts:
+            - mountPath: /opt/conf
+              name: config
+      volumes:
+        - name: config
+          configMap:
+            name: backend-config
+            items:
+              - key: Application.yaml
+                path: Application.yaml
+      imagePullSecrets:
+        - name: greenbull-registry
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: default
+  name: backend-svc
+  labels:
+    stack: greenbull
+    tier: backend
+    app: greenbull
+spec:
+  selector:
+    app: greenbull
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: backend-port
+      nodePort: 30002
+  type: NodePort
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    stack: greenbull
+    tier: backend
+    app: greenbull
+  name: backend-config
+  namespace: default
+data:
+  Application.yaml: |
+    # logging:
+    #    config: classpath:logback.xml
+    
+    spring:
+      main:
+        allow-bean-definition-overriding: true
+        # none, servlet, reactive,
+        web-application-type: servlet
+      
+      datasource:
+        url: jdbc:postgresql://postgresql-svc.default.svc.cluster.local:5432/postgres
+        username: greenbull
+        password: Tibi123!
+        driverClassName: org.postgresql.Driver
+      
+      jpa:
+        show-sql: true
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQL9Dialect
+          #            dialect: org.hibernate.dialect.HSQLDialect
+          ddl-auto: update
+          #ddl-auto: create
+    
+    springdoc:
+      swagger-ui:
+        path: "swagger.html"
+        enabled: true
+        tryItOutEnabled: true
+        filter: true
+    
+    app:
+      security:
+        #cross-origin: "*"
+        cross-origin: "https://greenbull.kekmoid.com"
+        
+        jwt-secret: GreenBullSecretKey
+        jwtExpirationMs: 86400000
+        #jwtCookieName: GreenBullCookie
+    
+    logging:
+      level:
+        org:
+          springframework:
+            security: DEBUG

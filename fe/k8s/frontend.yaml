@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    namespace: default
+    name: greenbull-frontend
+    labels:
+        stack: greenbull
+        tier: frontend
+        app: greenbull
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: greenbull
+    minReadySeconds: 10
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    template:
+        metadata:
+            labels:
+                stack: greenbull
+                tier: frontend
+                app: greenbull
+        spec:
+            containers:
+                - name: greenbull-frontend
+                  image: greenbull-registry.kekmoid.com/greenbull-frontend:0.0.2
+                  imagePullPolicy: Always
+                  env:
+                      - name: TZ
+                        value: "Europe/Budapest"
+                  ports:
+                      - containerPort: 80
+                        name: frontend-port
+                  volumeMounts:
+                      - mountPath: /etc/nginx/conf.d
+                        name: config
+            volumes:
+                - name: config
+                  configMap:
+                      name: nginx-config
+                      items:
+                          - key: nginx.default.conf
+                            path: default.conf
+            imagePullSecrets:
+                - name: greenbull-registry
+---
+apiVersion: v1
+kind: Service
+metadata:
+    namespace: default
+    name: frontend-svc
+    labels:
+        stack: greenbull
+        tier: frontend
+        app: greenbull
+spec:
+    selector:
+        app: greenbull
+    ports:
+        - protocol: TCP
+          port: 4200
+          targetPort: frontend-port
+          nodePort: 30003
+    type: NodePort
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    labels:
+        stack: greenbull
+        tier: frontend
+        app: greenbull
+    name: nginx-config
+    namespace: default
+data:
+    nginx.default.conf: |
+            server {
+                server_name localhost;
+                listen 80;
+                root /usr/share/nginx/html;
+                index index.html;
+                location ~ \.css {
+                add_header  Content-Type    text/css;
+                }
+                location ~ \.js {
+                add_header  Content-Type    application/x-javascript;
+                }
+                location / {
+                try_files $uri$args $uri$args/ /index.html;
+                }
+                location /api {
+                proxy_http_version 1.1;
+                proxy_pass http://backend-svc:8080;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-NginX-Proxy true;
+                proxy_cache_bypass $http_upgrade;
+                }
+            }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: greenbull-fe-ingress
+    namespace: default
+    annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/proxy-body-size: "0"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+    ingressClassName: public
+    tls:
+        - hosts:
+              - greenbull.kekmoid.com
+          secretName: letsencrypt-prod-fe
+    rules:
+        - host: greenbull.kekmoid.com
+          http:
+              paths:
+                  - path: /
+                    pathType: ImplementationSpecific
+                    backend:
+                        service:
+                            name: frontend-svc
+                            port:
+                                number: 4200
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+    namespace: default
+    name: letsencrypt-prod-fe
+spec:
+    acme:
+        email: baarnabas.kling@gmail.com
+        preferredChain: ''
+        privateKeySecretRef:
+            name: letsencrypt-prod-fe
+        server: https://acme-v02.api.letsencrypt.org/directory
+        solvers:
+            - http01:
+                  ingress:
+                      class: public
