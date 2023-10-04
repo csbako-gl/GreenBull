@@ -26,7 +26,7 @@ jobs:
         with:
           context: "./be/"
           push: true
-          tags: greenbull-registry.kekmoid.com/greenbull-backend:${{ vars.GITHUB_REF_NAME }}
+          tags: greenbull-registry.kekmoid.com/greenbull-backend:${{ env.GITHUB_REF_NAME }}
 
   build-fe:
     runs-on: ubuntu-latest
