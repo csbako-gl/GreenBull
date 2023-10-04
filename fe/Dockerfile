@@ -4,7 +4,6 @@ WORKDIR /app
 RUN npm i -g npm@latest
 RUN npm i
 RUN npm run build
-RUN ls -la /app/dist/sakai-ng
 
 FROM nginx:1.25.2
 COPY --from=build /app/dist/sakai-ng/assets/nginx.default.conf /etc/nginx/conf.d/default.conf
