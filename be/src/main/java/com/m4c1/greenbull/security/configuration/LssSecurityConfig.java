@@ -85,41 +85,40 @@ public class LssSecurityConfig {
                                         "/error/**",
                                         "/user/changePassword*")
                         .permitAll()
-                        .csrf(csrf -> {
-                            csrf.ignoringRequestMatchers(
-                                    "/login*",
-                                    "/logout*",
-                                    "/registrationConfirm*",
-                                    "/forgetPassword*",
-                                    "/updatePassword*",
-                                    "/qrcode*",
-                                    "/battery_data*",   // TODO remove
-                                    "/battery_data**",  // TODO remove
-                                    "/battery_data/**", // TODO remove
-                                    "/settings**",      // TODO remove?
-                                    "/settings/*",      // TODO remove?
-                                    "/settings*",       // TODO remove?
-                                    "/v3/api-docs/**",
-                                    "/swagger.json",
-                                    "/swagger-ui/index.html**",
-                                    "/swagger-ui/**",
-                                    "/swagger/**",
-                                    "/swg**",
-                                    "/swagger-ui.html",
-                                    "/swagger-resources/**",
-                                    "/swagger**",
-                                    "/webjars/**", // swagger
-                                    "/user/registration**",
-                                    "/user/registration/**",
-                                    "/user/resendRegistrationToken*",
-                                    "/user/resetPassword*",
-                                    "/user/savePassword*",
-                                    "/error**",
-                                    "/error/**",
-                                    "/user/changePassword*");
-                        })
                         .anyRequest().authenticated()
-                );
+                ).csrf(csrf -> {
+                    csrf.ignoringRequestMatchers(
+                            "/login*",
+                            "/logout*",
+                            "/registrationConfirm*",
+                            "/forgetPassword*",
+                            "/updatePassword*",
+                            "/qrcode*",
+                            "/battery_data*",   // TODO remove
+                            "/battery_data**",  // TODO remove
+                            "/battery_data/**", // TODO remove
+                            "/settings**",      // TODO remove?
+                            "/settings/*",      // TODO remove?
+                            "/settings*",       // TODO remove?
+                            "/v3/api-docs/**",
+                            "/swagger.json",
+                            "/swagger-ui/index.html**",
+                            "/swagger-ui/**",
+                            "/swagger/**",
+                            "/swg**",
+                            "/swagger-ui.html",
+                            "/swagger-resources/**",
+                            "/swagger**",
+                            "/webjars/**", // swagger
+                            "/user/registration**",
+                            "/user/registration/**",
+                            "/user/resendRegistrationToken*",
+                            "/user/resetPassword*",
+                            "/user/savePassword*",
+                            "/error**",
+                            "/error/**",
+                            "/user/changePassword*");
+                });
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
