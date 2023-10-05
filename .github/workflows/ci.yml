@@ -57,9 +57,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Trigger deploy
-        uses: Consensys/kubernetes-action@master
+        uses: Gabryel8818/kubectl@v1.0.1
         env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
+          BASE64_KUBE_CONFIG: ${{ secrets.GREENBULL_KUBE_CONFIG }}
+          KUBECTL_VERSION: 1.28.2
         with:
           args: set image deployment/greenbull-backend greenbull-backend=greenbull-registry.kekmoid.com/greenbull-backend:${{ github.ref_name }}
     needs: [
@@ -72,9 +73,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Trigger deploy
-        uses: Consensys/kubernetes-action@master
+        uses: Gabryel8818/kubectl@v1.0.1
         env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
+          BASE64_KUBE_CONFIG: ${{ secrets.GREENBULL_KUBE_CONFIG }}
+          KUBECTL_VERSION: 1.28.2
         with:
           args: set image deployment/greenbull-frontend greenbull-frontend=greenbull-registry.kekmoid.com/greenbull-frontend:${{ github.ref_name }}
     needs: [
