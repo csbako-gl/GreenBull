@@ -20,6 +20,9 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String bmsId;
+
     @Column(nullable = false)
     private long userId;
 

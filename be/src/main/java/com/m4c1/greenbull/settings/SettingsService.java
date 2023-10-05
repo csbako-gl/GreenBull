@@ -42,4 +42,8 @@ public class SettingsService {
         if(settings.getInputStyle() != null) settingsToModify.setInputStyle(settings.getInputStyle());
         settingsRepository.save(settingsToModify);
     }
+
+    public String getVersion() {
+        return System.getenv().get("GREENBULL_VERSION");
+    }
 }

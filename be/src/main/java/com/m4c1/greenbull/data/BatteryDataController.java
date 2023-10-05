@@ -22,7 +22,7 @@ public class BatteryDataController {
     BatteryDataService batteryDataService;
 
     @PutMapping("/add")
-    public RestResponse<Void> add(@RequestBody BatteryData data) {
+    public RestResponse<Void> add(@RequestBody BatteryDataDto data) {
         batteryDataService.addData(data);
         return RestResponse.<Void>builder().build();
     }

@@ -432,8 +432,4 @@ public class UserSecurityService {
 
         return username;
     }
-
-    public String getVersion() {
-        return System.getenv().get("GREENBULL_VERSION");
-    }
 }

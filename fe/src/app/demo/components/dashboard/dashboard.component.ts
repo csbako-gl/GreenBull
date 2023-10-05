@@ -86,7 +86,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             if(resp?.data != null) {
                 this.lastBatteryData = resp.data;
                 if(this.lastBatteryData.pakfeszultseg) {
-                    this.lastBatteryData.pakfeszultseg /= 1000;
+                    this.lastBatteryData.pakfeszultseg /= 100;
                 }
                 const voltages: number[] = [];
                 if (this.lastBatteryData.c1) voltages.push(this.lastBatteryData.c1);
@@ -232,7 +232,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         });
                     },
                     scrolled: function(chartContext: any, { xaxis }: any) {
-                        const series : any[] = chartContext?.data?.twoDSeriesX;
+                        /*const series : any[] = chartContext?.data?.twoDSeriesX;
                         const seriesY: any[] = chartContext?.data?.twoDSeries;
                         var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
                         var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
@@ -246,11 +246,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                               min: minmax.min - delta * 2, // Új minimum érték
                               max: minmax.max + delta// Új maximum érték
                             }
-                        });
+                        });*/
                         //this.racalcVerticalZoom(chartContext, xaxis);
                     },
                     zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
-                        const series : any[] = chartContext?.data?.twoDSeriesX;
+                        /*const series : any[] = chartContext?.data?.twoDSeriesX;
                         const seriesY: any[] = chartContext?.data?.twoDSeries;
                         var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
                         var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
@@ -264,7 +264,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                               min: minmax.min - delta * 2, // Új minimum érték
                               max: minmax.max + delta// Új maximum érték
                             }
-                        });
+                        });*/
                     },
                     brushScrolled: function(chartContext: any, { xaxis, yaxis }: any) {
                         console.log("brushScrolled");
