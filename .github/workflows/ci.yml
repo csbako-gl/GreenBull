@@ -63,10 +63,8 @@ jobs:
         with:
           args: set image deployment/greenbull-backend greenbull-backend=greenbull-registry.kekmoid.com/greenbull-backend:${{ github.ref_name }}
     needs: [
-      build-be,
-      build-fe
+      build-be
     ]
-    if: ${{ always() && !cancelled() && needs.*.result == 'success' }}
 
   deploy-fe:
     name: Deploy new frontend image
@@ -80,7 +78,5 @@ jobs:
         with:
           args: set image deployment/greenbull-frontend greenbull-frontend=greenbull-registry.kekmoid.com/greenbull-frontend:${{ github.ref_name }}
     needs: [
-      build-be,
       build-fe
     ]
-    if: ${{ always() && !cancelled() && needs.*.result == 'success' }}
