@@ -9,6 +9,7 @@ jobs:
 
   build-be:
     runs-on: ubuntu-latest
+    name: Build Greenbull backend module
     steps:
       - uses: actions/checkout@v3
       - name: Set up QEMU
@@ -29,6 +30,7 @@ jobs:
           tags: greenbull-registry.kekmoid.com/greenbull-backend:${{ github.ref_name }}
 
   build-fe:
+    name: Build Greeenbull frontend module
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -48,3 +50,37 @@ jobs:
           context: "./fe/"
           push: true
           tags: greenbull-registry.kekmoid.com/greenbull-frontend:${{ github.ref_name }}
+
+  deploy-be:
+    name: Deploy new backend image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Trigger deploy
+        uses: Consensys/kubernetes-action@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: set image deployment/greenbull-backend greenbull-backend=greenbull-registry.kekmoid.com/greenbull-backend:${{ github.ref_name }}
+    needs: [
+      build-be,
+      build-fe
+    ]
+    if: ${{ always() && !cancelled() && needs.*.result == 'success' }}
+
+  deploy-fe:
+    name: Deploy new frontend image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Trigger deploy
+        uses: Consensys/kubernetes-action@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: set image deployment/greenbull-frontend greenbull-frontend=greenbull-registry.kekmoid.com/greenbull-frontend:${{ github.ref_name }}
+    needs: [
+      build-be,
+      build-fe
+    ]
+    if: ${{ always() && !cancelled() && needs.*.result == 'success' }}

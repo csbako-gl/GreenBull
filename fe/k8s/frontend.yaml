@@ -27,7 +27,7 @@ spec:
         spec:
             containers:
                 - name: greenbull-frontend
-                  image: greenbull-registry.kekmoid.com/greenbull-frontend:0.0.6
+                  image: greenbull-registry.kekmoid.com/greenbull-frontend:0.0.7
                   imagePullPolicy: Always
                   env:
                       - name: TZ
@@ -92,16 +92,15 @@ data:
                 location / {
                 try_files $uri$args $uri$args/ /index.html;
                 }
-                location /api {
+                location /api/ {
                 proxy_http_version 1.1;
-                proxy_pass http://backend-svc:8080;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection 'upgrade';
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-NginX-Proxy true;
-                proxy_cache_bypass $http_upgrade;
+                proxy_pass http://backend-svc:8080/;
+                proxy_set_header Host               $host;
+                proxy_set_header X-Real-IP          $remote_addr;
+                proxy_set_header X-Forwarded-Host   $host;
+                proxy_set_header X-Forwarded-Proto  $scheme;
+                proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Server $host;
                 }
             }
 ---
@@ -112,9 +111,6 @@ metadata:
     namespace: default
     annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        nginx.ingress.kubernetes.io/proxy-body-size: "0"
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
 spec:
     ingressClassName: public
     tls:

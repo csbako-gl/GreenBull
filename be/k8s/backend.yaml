@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: greenbull-backend
-          image: greenbull-registry.kekmoid.com/greenbull-backend:0.0.6
+          image: greenbull-registry.kekmoid.com/greenbull-backend:0.0.7
           imagePullPolicy: Always
           env:
             - name: TZ
@@ -111,7 +111,7 @@ data:
     app:
       security:
         #cross-origin: "*"
-        cross-origin: "https://greenbull.kekmoid.com"
+        cross-origin: "https://greenbull.kekmoid.com,https://81.183.232.211:443"
         
         jwt-secret: GreenBullSecretKey
         jwtExpirationMs: 86400000
