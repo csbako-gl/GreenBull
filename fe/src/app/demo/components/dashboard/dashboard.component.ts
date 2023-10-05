@@ -247,6 +247,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                               max: minmax.max + delta// Új maximum érték
                             }
                         });
+                        //this.racalcVerticalZoom(chartContext, xaxis);
                     },
                     zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
                         const series : any[] = chartContext?.data?.twoDSeriesX;
