@@ -87,6 +87,7 @@ public class LssSecurityConfig {
                         .permitAll()
                         .anyRequest().authenticated()
                 );
+        http.csrf().disable();
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
