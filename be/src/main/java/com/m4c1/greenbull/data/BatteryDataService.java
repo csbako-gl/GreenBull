@@ -1,6 +1,7 @@
 package com.m4c1.greenbull.data;
 
 import com.m4c1.greenbull.api_gateway.RestException;
+import com.m4c1.greenbull.device.Device;
 import com.m4c1.greenbull.device.DeviceRepository;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +29,8 @@ public class BatteryDataService {
             throw new RestException("Error battery data is null!");
         }
 
-        if(deviceRepository.findByBmsId(dto.getBmsId()).isEmpty()) {
+        Device device = deviceRepository.findByBmsId(dto.getBmsId()).orElse(null);
+        if(device == null) {
             log.error("device Id does not exist: {}", dto.getBmsId());
             throw new RestException("device Id does not exist: " + dto.getBmsId());
         }
@@ -45,6 +47,7 @@ public class BatteryDataService {
 
         Date date = new Date(System.currentTimeMillis());
         data.setDate(date);
+        data.setDeviceId(device.getId());
         batteryDataRepository.save(data);
     }
 
