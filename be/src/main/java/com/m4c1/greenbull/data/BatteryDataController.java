@@ -29,17 +29,17 @@ public class BatteryDataController {
     BatteryDataService batteryDataService;
 
     @PutMapping("/add")
-    public RestResponse<Void> add(@RequestBody BatteryDataDto data) {
+    public RestResponse<Void> add(@RequestBody BatteryDataDto data) throws Exception {
         try {
             batteryDataService.addData(data);
         } catch (Exception e) {
-            throw new RestException(e, data != null ? "Error on add:" : "Error: data is null", data != null ? data : " ");
+            throw new Exception(e.getMessage());
         }
         return RestResponse.<Void>builder().build();
     }
 
     @PutMapping("/add2")
-    public RestResponse<Void> add2(final HttpServletRequest request, @RequestBody final Optional<String> msg) {
+    public RestResponse<Void> add2(final HttpServletRequest request, @RequestBody final Optional<String> msg) throws Exception {
         String bmsId = request.getParameter("bms_id");
         String hexData = request.getParameter("hex_data");
         try {

@@ -59,6 +59,7 @@ public class DeviceService {
                     .name(type.getName())
                     .manufacture(type.getManufacture())
                     .description(type.getDescription())
+                    .bmsId(device.getBmsId())
                     .otherData(type.getOtherData())
                     .build()));
         });
