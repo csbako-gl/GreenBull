@@ -1,5 +1,6 @@
 package com.m4c1.greenbull.data;
 
+import com.m4c1.greenbull.api_gateway.RestException;
 import com.m4c1.greenbull.device.DeviceRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -22,14 +23,23 @@ public class BatteryDataService {
 
     public void addData(BatteryDataDto dto) {
 
+        if (dto == null) {
+            throw new RestException("Error battery data is null!");
+        }
+
         if(deviceRepository.findByBmsId(dto.getBmsId()).isEmpty()) {
             log.error("device Id does not exist: {}", dto.getBmsId());
-            return;
+            throw new RestException("device Id does not exist: " + dto.getBmsId());
+        }
+
+        if(dto.getHexData() == null) {
+            log.error("hex data is null!");
+            throw new RestException(("hex data is null!"));
         }
 
         BatteryData data = processDto(dto);
         if (data == null) {
-            return;
+            throw new RestException("device Id does not exist: " + dto.getBmsId());
         }
 
         Date date = new Date(System.currentTimeMillis());
