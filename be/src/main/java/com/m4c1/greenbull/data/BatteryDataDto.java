@@ -1,9 +1,15 @@
 package com.m4c1.greenbull.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class BatteryDataDto {
 
     @JsonProperty("bms_id")

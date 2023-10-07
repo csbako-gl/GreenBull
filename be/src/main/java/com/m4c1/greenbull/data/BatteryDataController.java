@@ -1,6 +1,8 @@
 package com.m4c1.greenbull.data;
 
 import com.m4c1.greenbull.api_gateway.RestResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.m4c1.greenbull.ApplicationConstants.*;
+
 @RestController
 @RequestMapping({ "/battery_data" })
 public class BatteryDataController {
@@ -22,8 +26,11 @@ public class BatteryDataController {
     BatteryDataService batteryDataService;
 
     @PutMapping("/add")
-    public RestResponse<Void> add(@RequestBody BatteryDataDto data) {
-        batteryDataService.addData(data);
+    public RestResponse<Void> add(final HttpServletRequest request, @RequestBody final Optional<String> msg) {
+        batteryDataService.addData(BatteryDataDto.builder()
+                        .bmsId(request.getParameter("bms_id"))
+                        .hexData(request.getParameter("hex_data").getBytes(StandardCharsets.US_ASCII))
+                .build());
         return RestResponse.<Void>builder().build();
     }
 
