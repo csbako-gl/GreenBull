@@ -2,6 +2,7 @@ package com.m4c1.greenbull.data;
 
 import com.m4c1.greenbull.api_gateway.RestResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import java.beans.ExceptionListener;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -26,11 +27,29 @@ public class BatteryDataController {
     BatteryDataService batteryDataService;
 
     @PutMapping("/add")
-    public RestResponse<Void> add(final HttpServletRequest request, @RequestBody final Optional<String> msg) {
-        batteryDataService.addData(BatteryDataDto.builder()
-                        .bmsId(request.getParameter("bms_id"))
-                        .hexData(request.getParameter("hex_data").getBytes(StandardCharsets.US_ASCII))
-                .build());
+    public RestResponse<Void> add(@RequestBody BatteryDataDto data) {
+        try {
+            batteryDataService.addData(data);
+        } catch (Exception e) {
+            return RestResponse.<Void>builder()
+                    .error("ERROR: " + e.getMessage())
+                    .build();
+        }
+        return RestResponse.<Void>builder().build();
+    }
+
+    @PutMapping("/add2")
+    public RestResponse<Void> add2(final HttpServletRequest request, @RequestBody final Optional<String> msg) {
+        try {
+            batteryDataService.addData(BatteryDataDto.builder()
+                    .bmsId(request.getParameter("bms_id"))
+                    .hexData(request.getParameter("hex_data").getBytes(StandardCharsets.US_ASCII))
+                    .build());
+        } catch (Exception e) {
+            return RestResponse.<Void>builder()
+                    .error("ERROR: " + e.getMessage())
+                    .build();
+        }
         return RestResponse.<Void>builder().build();
     }
 
