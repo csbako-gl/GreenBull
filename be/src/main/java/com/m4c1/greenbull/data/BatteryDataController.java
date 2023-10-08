@@ -33,24 +33,14 @@ public class BatteryDataController {
         try {
             batteryDataService.addData(data);
         } catch (Exception e) {
-            throw new Exception(e.getMessage());
+            return RestResponse.<Void>builder()
+                    .error(e.getMessage())
+                    .status(500)
+                    .build();
         }
-        return RestResponse.<Void>builder().build();
-    }
-
-    @PutMapping("/add2")
-    public RestResponse<Void> add2(final HttpServletRequest request, @RequestBody final Optional<String> msg) throws Exception {
-        String bmsId = request.getParameter("bms_id");
-        String hexData = request.getParameter("hex_data");
-        try {
-            batteryDataService.addData(BatteryDataDto.builder()
-                    .bmsId(bmsId)
-                    .hexData(hexData.getBytes(StandardCharsets.US_ASCII))
-                    .build());
-        } catch (Exception e) {
-            throw new RestException(e, "Error on add battery data:", bmsId, hexData);
-        }
-        return RestResponse.<Void>builder().build();
+        return RestResponse.<Void>builder()
+                .status(200)
+                .build();
     }
 
     @GetMapping("/get_all")

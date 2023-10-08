@@ -20,7 +20,9 @@ public class RestResponse<T> {
 
     protected T data;
 
-    protected String status;
+    protected int status;
+
+    protected String statusMsg;
 
     protected String message;
 

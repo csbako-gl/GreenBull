@@ -47,6 +47,9 @@
                         <td style="width:14%; min-width:10rem;"><span class="p-column-title">Code</span>
                             {{device.name || device.id}}
                         </td>
+                        <td style="width:14%; min-width:10rem;"><span class="p-column-title">Code</span>
+                            {{device.bms_id}}
+                        </td>
                         <td style="width:14%; min-width: 10rem;"><span class="p-column-title">Status</span>
                             <span [class]="'product-badge status-' + (device.status ? device.status.toLowerCase() : '')">{{device.status}}</span>
                         </td>

@@ -42,7 +42,7 @@ public class BatteryDataService {
 
         BatteryData data = processDto(dto);
         if (data == null) {
-            throw new RestException("device Id does not exist: " + dto.getBmsId());
+            throw new RestException("can not process battery data dto: " + dto.toString());
         }
 
         Date date = new Date(System.currentTimeMillis());
@@ -53,7 +53,7 @@ public class BatteryDataService {
 
     private BatteryData processDto(BatteryDataDto dto) {
         if (dto.getHexData() == null || dto.getHexData().length < 141 ) {
-            return null;
+            throw new RestException("hex data is null or to small: " + (dto.getHexData() == null ? "null" : dto.getHexData().length));
         }
 
         BatteryData data = new BatteryData();
