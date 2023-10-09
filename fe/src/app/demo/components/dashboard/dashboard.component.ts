@@ -82,7 +82,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     initLastData() {
-        this.batteryDataService.getLastBatteryData(152).subscribe((resp : ApiResponse) => {
+        this.batteryDataService.getLastBatteryData(-1).subscribe((resp : ApiResponse) => {
             if(resp?.data != null) {
                 this.lastBatteryData = resp.data;
                 if(this.lastBatteryData.pakfeszultseg) {
@@ -375,7 +375,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     
     public initApexChartData() {
-        this.batteryDataService.getBatteryDataLimited(152/*TODO ide kell majd autmata id kitalélés*/, CHART_LIMIT).subscribe((resp : ApiResponse) => {
+        this.batteryDataService.getBatteryDataLimited(-1/*TODO ide kell majd autmata id kitalélés*/, CHART_LIMIT).subscribe((resp : ApiResponse) => {
             /*this.dataArray = [];
             for (let i = 0; i < 16; i++) {
                 this.dataArray.push([]);

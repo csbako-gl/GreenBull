@@ -3,8 +3,11 @@ package com.m4c1.greenbull.data;
 import com.m4c1.greenbull.api_gateway.RestException;
 import com.m4c1.greenbull.device.Device;
 import com.m4c1.greenbull.device.DeviceRepository;
+import com.m4c1.greenbull.security.UserSecurityService;
+import com.m4c1.greenbull.security.user.User;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +25,9 @@ public class BatteryDataService {
 
     @Autowired
     DeviceRepository deviceRepository;
+
+    @Autowired
+    UserSecurityService userSecurityService;
 
     public void addData(BatteryDataDto dto) {
 
@@ -61,39 +67,31 @@ public class BatteryDataService {
 
         // pack_fesz
         byte[] dataBytes = Arrays.copyOfRange(receivedData, 113, 117);
-        ByteBuffer buffer = ByteBuffer.wrap(dataBytes);
-        data.setPakfeszultseg(buffer.getInt());
+        data.setPakfeszultseg(getIntFromAscii4Bytes(dataBytes));
 
         // pack_tolt
-        byte[] dataBytes2 = Arrays.copyOfRange(receivedData, 117, 121);
-        buffer = ByteBuffer.wrap(dataBytes2);
-        data.setToltesszint(buffer.getInt());
+        dataBytes = Arrays.copyOfRange(receivedData, 117, 121);
+        data.setToltesszint(getIntFromAscii4Bytes(dataBytes));
 
         // terhel_tolt1
-        byte[] dataBytes3 = Arrays.copyOfRange(receivedData, 109, 113);
-        buffer = ByteBuffer.wrap(dataBytes3);
-        data.setToltesmerites(buffer.getInt());
+        dataBytes = Arrays.copyOfRange(receivedData, 109, 113);
+        data.setToltesmerites(getIntFromAscii4Bytes(dataBytes));
 
         // Ciklus
-        byte[] dataBytes4 = Arrays.copyOfRange(receivedData, 126, 130);
-        buffer = ByteBuffer.wrap(dataBytes4);
-        data.setCiklusszam(buffer.getInt());
+        dataBytes = Arrays.copyOfRange(receivedData, 126, 130);
+        data.setCiklusszam(getIntFromAscii4Bytes(dataBytes));
 
         // TODO ----------------------------------------------
-        // hofok_6
-        byte[] dataBytes_t6 = Arrays.copyOfRange(receivedData, 105, 109);
-        buffer = ByteBuffer.wrap(dataBytes_t6);
-        int hofok_6 = buffer.getInt() - 2730; //kelvin to Celsius
+        dataBytes = Arrays.copyOfRange(receivedData, 105, 109);
+        int hofok_6 = getIntFromAscii4Bytes(dataBytes) - 2730; //kelvin to Celsius
 
         // hofok_5
-        byte[] dataBytes_t5 = Arrays.copyOfRange(receivedData, 101, 105);
-        buffer = ByteBuffer.wrap(dataBytes_t5);
-        int hofok_5 = buffer.getInt() - 2730;
+        dataBytes = Arrays.copyOfRange(receivedData, 101, 105);
+        int hofok_5 = getIntFromAscii4Bytes(dataBytes) - 2730;
 
         // hofok_4
-        byte[] dataBytes_t4 = Arrays.copyOfRange(receivedData, 97, 101);
-        buffer = ByteBuffer.wrap(dataBytes_t4);
-        int hofok_4 = buffer.getInt() - 2730;
+        dataBytes = Arrays.copyOfRange(receivedData, 97, 101);
+        int hofok_4 = getIntFromAscii4Bytes(dataBytes) - 2730;
 
         //TODO data.setHibakod();
         //TODO data.setStatusz();
@@ -102,19 +100,16 @@ public class BatteryDataService {
         // TODO ----------------------------------------------
 
         // hofok_3
-        byte[] dataBytesT3 = Arrays.copyOfRange(receivedData, 93, 97);
-        buffer = ByteBuffer.wrap(dataBytesT3);
-        data.setSzenzorho2(buffer.getInt() - 2730);
+        dataBytes = Arrays.copyOfRange(receivedData, 93, 97);
+        data.setSzenzorho2(getIntFromAscii4Bytes(dataBytes) - 2730);
 
         // hofok_2
-        byte[] dataBytesT2 = Arrays.copyOfRange(receivedData, 89, 93);
-        buffer = ByteBuffer.wrap(dataBytesT2);
-        data.setSzenzorho1(buffer.getInt() - 2730);
+        dataBytes = Arrays.copyOfRange(receivedData, 89, 93);
+        data.setSzenzorho1(getIntFromAscii4Bytes(dataBytes) - 2730);
 
         // hofok_1
-        byte[] dataBytesT1 = Arrays.copyOfRange(receivedData, 85, 89);
-        buffer = ByteBuffer.wrap(dataBytesT1);
-        data.setBmshomerseklet(buffer.getInt() - 2730);
+        dataBytes = Arrays.copyOfRange(receivedData, 85, 89);
+        data.setBmshomerseklet(getIntFromAscii4Bytes(dataBytes) - 2730);
 
         // Cella értékek
         data.setC1( extractCellValue(receivedData, 19));
@@ -137,10 +132,27 @@ public class BatteryDataService {
         return data;
     }
 
-    private static int extractCellValue(byte[] receivedData, int startIndex) {
+    private int getIntFromAscii4Bytes(byte[] buffer) {
+        return  Integer.parseInt(String.valueOf(
+                (char)buffer[0]) +
+                (char)(buffer[1]) +
+                (char)(buffer[2]) +
+                (char)(buffer[3]), 16);
+
+                /*(buffer[0] << 24) |
+                ((buffer[1] & 0xFF) << 16) |
+                ((buffer[2] & 0xFF) << 8) |
+                (buffer[3] & 0xFF);*/
+    }
+
+    private int getIntFromAscii2Bytes(byte[] buffer) {
+        return  ((buffer[0] & 0xFF) << 8) |
+                (buffer[1] & 0xFF);
+    }
+
+    private int extractCellValue(byte[] receivedData, int startIndex) {
         byte[] dataBytes = Arrays.copyOfRange(receivedData, startIndex, startIndex + 4);
-        ByteBuffer buffer = ByteBuffer.wrap(dataBytes);
-        return buffer.getInt();
+        return getIntFromAscii4Bytes(dataBytes);
     }
 
     public List<BatteryData> findByDeviceId(Long deviceId) {
@@ -148,11 +160,29 @@ public class BatteryDataService {
     }
 
     public Optional<BatteryData> findLastByDeviceId(Long deviceId) {
-        return batteryDataRepository.findLastByDeviceId(deviceId);
+        if (deviceId != null && deviceId > 0) {
+            return batteryDataRepository.findLastByDeviceId(deviceId);
+        }
+
+        User user = userSecurityService.getCurrentUser();
+        List<Device> devices = deviceRepository.findByUserId(user.getId());
+        if (!devices.isEmpty()) {
+            return batteryDataRepository.findLastByDeviceId(devices.get(0).getId());
+        }
+
+        return Optional.of(new BatteryData());
     }
 
     public List<BatteryData> findByDeviceIdLimited(Long deviceId, Long count) {
-        return batteryDataRepository.findByDeviceIdLimited(deviceId, count);
+        if (deviceId != null && deviceId > 0) {
+            return batteryDataRepository.findByDeviceIdLimited(deviceId, count);
+        }
+        User user = userSecurityService.getCurrentUser();
+        List<Device> devices = deviceRepository.findByUserId(user.getId());
+        if (!devices.isEmpty()) {
+            return batteryDataRepository.findByDeviceIdLimited(devices.get(0).getId(), count);
+        }
+        return new ArrayList<>();
     }
 
     public List<BatteryData> findByDeviceIdFromDate(Long deviceId, Date dateFrom) {
