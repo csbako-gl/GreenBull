@@ -35,7 +35,7 @@ public class RestException extends RuntimeException {
         StringBuilder sb = new StringBuilder();
         Throwable cause = getCause();
         if (messageKey != null) {
-            sb.append("MESSAGEKEY: ");
+            sb.append("MESSAGE: ");
             sb.append(messageKey);
         }
         if (cause != null) {

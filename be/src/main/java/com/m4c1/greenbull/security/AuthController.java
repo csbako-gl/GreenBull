@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class AuthController {
     private UserSecurityService userSecurityService;
 
     @PostMapping("/login")
-    public ResponseEntity<?>  login(
+    public ResponseEntity<RestResponse<String>>  login(
             final HttpServletRequest request,
             @RequestBody final Optional<String> msg
     ) throws ServletException, IOException {
@@ -30,9 +31,7 @@ public class AuthController {
         final String username = request.getParameter(USER_NAME);
         final String password = request.getParameter(PASSWORD);
         final RestResponse<String> body = userSecurityService.login(username, password, request, null);
-
-        return ResponseEntity.ok()
-                .body(body);
+        return new ResponseEntity<>(body, Objects.requireNonNullElse(HttpStatus.resolve(body.getStatus()), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     @PostMapping("/login2fa")

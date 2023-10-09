@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -53,19 +54,21 @@ public class UserSecurityController {
 
 
     @PostMapping("/registration")
-    public RestResponse<String> registration(
+    public ResponseEntity<RestResponse<String>> registration(
             final HttpServletRequest request,
             @RequestBody final Optional<String> msg
     ) {
         log.debug("Registering user account with information: {}", request.getParameter(USER_NAME));
-        return userSecurityService.registerNewUserAccount( UserDto.builder()
-                .email(request.getParameter(EMAIL))
-                .password(request.getParameter(PASSWORD))
-                .matchingPassword(request.getParameter(MATCHING_PASSWORD))
-                .firstName(request.getParameter(FIRST_NAME))
-                .lastName(request.getParameter(LAST_NAME))
-                .build(),
+        RestResponse<String> body = userSecurityService.registerNewUserAccount(
+                UserDto.builder()
+                        .email(request.getParameter(EMAIL))
+                        .password(request.getParameter(PASSWORD))
+                        .matchingPassword(request.getParameter(MATCHING_PASSWORD))
+                        .firstName(request.getParameter(FIRST_NAME))
+                        .lastName(request.getParameter(LAST_NAME))
+                        .build(),
                 request);
+        return new ResponseEntity<>(body, Objects.requireNonNullElse(HttpStatus.resolve(body.getStatus()), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     @GetMapping("/logged")

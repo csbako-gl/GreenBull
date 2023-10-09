@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,18 +31,16 @@ public class BatteryDataController {
     BatteryDataService batteryDataService;
 
     @PutMapping("/add")
-    public RestResponse<Void> add(@RequestBody BatteryDataDto data) throws Exception {
+    public ResponseEntity<RestResponse<Void>> add(@RequestBody BatteryDataDto data) throws Exception {
         try {
             batteryDataService.addData(data);
         } catch (Exception e) {
-            return RestResponse.<Void>builder()
+            return new ResponseEntity<>(RestResponse.<Void>builder()
                     .error(e.getMessage())
-                    .status(500)
-                    .build();
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .build(), HttpStatus.BAD_REQUEST);
         }
-        return RestResponse.<Void>builder()
-                .status(200)
-                .build();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/get_all")

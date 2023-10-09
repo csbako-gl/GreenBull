@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -122,13 +123,14 @@ public class UserSecurityService {
             return RestResponse.<String>builder()
                     .data("")
                     .statusMsg(SecurityConstants.STATUS_INVALID_USER_OR_PW)
-                    .status(500)
+                    .status(HttpStatus.UNAUTHORIZED.value())
                     .message(SecurityConstants.MESSAGE_INVALID_USER_OR_PW)
                     .build();
         }
 
         try {
             body.setStatusMsg(user.isUsing2FA() ? SecurityConstants.STATUS_2FA : SecurityConstants.STATUS_SUCCESS);
+            body.setStatus(HttpStatus.OK.value());
 
             if (user.isUsing2FA()) {
                 body.setData(username);
@@ -146,7 +148,7 @@ public class UserSecurityService {
             return RestResponse.<String>builder()
                     .data("")
                     .statusMsg(SecurityConstants.STATUS_INVALID_USER_OR_PW)
-                    .status(500)
+                    .status(HttpStatus.UNAUTHORIZED.value())
                     .message(SecurityConstants.MESSAGE_INVALID_USER_OR_PW)
                     .build();
         }
@@ -225,20 +227,20 @@ public class UserSecurityService {
             return RestResponse.<String>builder()
                     .data("")
                     .statusMsg(SecurityConstants.STATUS_SUCCESS)
-                    .status(500)
+                    .status(HttpStatus.OK.value())
                     .build();
         } catch (UserAlreadyExistException e) {
             log.info("There is an account with that email address : {}", accountDto.getEmail());
             return RestResponse.<String>builder()
                     .data("")
                     .statusMsg(SecurityConstants.STATUS_USERNAME_ALREADY_EXISTS)
-                    .status(500)
+                    .status(HttpStatus.CONFLICT.value())
                     .message(SecurityConstants.MESSAGE_USERNAME_ALREADY_EXISTS)
                     .build();
         } catch (InvalidMatchingPasswordException e) {
             return RestResponse.<String>builder()
                     .data("")
-                    .status(500)
+                    .status(HttpStatus.BAD_REQUEST.value())
                     .statusMsg(SecurityConstants.STATUS_INVALID_MATCHING_PASSWORD)
                     .message(SecurityConstants.MESSAGE_INVALID_MATCHING_PASSWORD)
                     .build();
