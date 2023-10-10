@@ -9,5 +9,6 @@ COPY --from=build /home/app/target/greenbull-0.0.1-SNAPSHOT.jar /usr/local/lib/g
 ADD src/main/resources/Application.yaml /opt/conf/Application.yaml
 EXPOSE 8080
 USER root
-RUN echo "export GREENBULL_VERSION=$GREENBULL_VERSION"
+ENV GB_VERSION "$GREENBULL_VERSION"
+RUN echo "export GREENBULL_VERSION=$GREENBULL_VERSION" > ~/.profile
 ENTRYPOINT ["sh","-c","java ${JAVA_OPTS} -jar /usr/local/lib/greenbull.jar --spring.config.location=file:/opt/conf/Application.yaml"]
