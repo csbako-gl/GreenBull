@@ -1,11 +1,19 @@
 export interface Device {
     id?: number;
-    typeId?: number;
+    type_id?: number;
     label?: string;
     name?: string;
     manufacture?: string;
     description?: string;
     bms_id?: string;
     status?: string;
-    otherData?: { [key: string]: any };
+    other_data?: { [key: string]: any };
+}
+
+export interface DeviceType {
+    id?: number;
+    name?: string;
+    manufacture?: string;
+    description?: string;
+    other_data?: { [key: string]: any };
 }

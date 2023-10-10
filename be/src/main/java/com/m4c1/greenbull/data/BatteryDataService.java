@@ -5,8 +5,6 @@ import com.m4c1.greenbull.device.Device;
 import com.m4c1.greenbull.device.DeviceRepository;
 import com.m4c1.greenbull.security.UserSecurityService;
 import com.m4c1.greenbull.security.user.User;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;

@@ -1,5 +1,6 @@
 package com.m4c1.greenbull.device;
 
+import com.m4c1.greenbull.api_gateway.RestException;
 import com.m4c1.greenbull.security.UserSecurityService;
 import com.m4c1.greenbull.security.user.ActiveUserStore;
 import com.m4c1.greenbull.security.user.User;
@@ -23,8 +24,28 @@ public class DeviceService {
     @Autowired
     DeviceTypeRepository deviceTypeRepository;
 
-    public long registerDevice(Device device) {
-        device = deviceRepository.save(device);
+    public long registerDevice(DeviceDto dto) {
+        final User user = userSecurityService.getCurrentUser();
+        Optional<DeviceType> deviceType = deviceTypeRepository.findById(dto.getTypeId());
+        if (deviceType.isEmpty()) {
+            throw new RestException("Error: invalid Type id:" + dto.getTypeId());
+        }
+        Optional<Device> oldDevice = deviceRepository.findByUserIdAndName(user.getId(), dto.getLabel());
+        if (oldDevice.isPresent()) {
+            throw new RestException("Error: There is another device with name:" + dto.getLabel());
+        }
+        oldDevice = deviceRepository.findByBmsId(dto.getBmsId());
+        if (oldDevice.isPresent()) {
+            throw new RestException("Error: There is another device with bms id:" + dto.getBmsId());
+        }
+        Device device = deviceRepository.save(Device.builder()
+                .userId(user.getId())
+                .bmsId(dto.getBmsId())
+                .name(dto.getLabel())
+                .typeId(dto.getTypeId())
+                .build()
+        );
+
         return device.getId();
     }
 

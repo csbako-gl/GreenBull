@@ -6,6 +6,8 @@ import com.m4c1.greenbull.security.user.ActiveUserStore;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,5 +29,11 @@ public class DeviceController {
     RestResponse<List<DeviceDto>> getByUser() {
         List<DeviceDto> data = deviceService.findByUser();
         return RestResponse.<List<DeviceDto>>builder().data(data).build();
+    }
+
+    @PutMapping("/add")
+    RestResponse<Long> add(@RequestBody DeviceDto deviceDto) {
+        Long id = deviceService.registerDevice(deviceDto);
+        return RestResponse.<Long>builder().data(id).build();
     }
 }

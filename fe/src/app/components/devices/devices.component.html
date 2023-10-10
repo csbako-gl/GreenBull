@@ -29,8 +29,9 @@
                 <ng-template pTemplate="header">
                     <tr>
                         <th>Image</th>
-                        <th pSortableColumn="name">Name <p-sortIcon field="label"></p-sortIcon></th>
-                        <th pSortableColumn="code">Code <p-sortIcon field="name"></p-sortIcon></th>
+                        <th pSortableColumn="label">Name <p-sortIcon field="label"></p-sortIcon></th>
+                        <th pSortableColumn="bms_id">Bms id <p-sortIcon field="bms_id"></p-sortIcon></th>
+                        <th pSortableColumn="name">Type <p-sortIcon field="name"></p-sortIcon></th>
                         <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
                         <th></th>
                     </tr>
@@ -40,15 +41,14 @@
                         <td style="width:14%; min-width:10rem;"><span class="p-column-title">Image</span>
                             <img [src]="'assets/images/devices/' + device.name.toLowerCase() + '.png'" [alt]="device.name" width="100" class="shadow-4" />
                         </td>
-                        <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Name</span>
+                        <td style="width:14%; min-width:10rem;"><span class="p-column-title">Name</span>
                             {{device.label}}
                         </td>
-                        <td style="width:14%; min-width:10rem;"><span class="p-column-title">Code</span>
-                            {{device.name || device.id}}
-                        </td>
-                        <td style="width:14%; min-width:10rem;"><span class="p-column-title">Code</span>
+                        <td style="width:14%; min-width:10rem;"><span class="p-column-title">Bms id</span>
                             {{device.bms_id}}
+                        </td>
+                        <td style="width:14%; min-width:10rem;"><span class="p-column-title">Type</span>
+                            {{device.name}}
                         </td>
                         <td style="width:14%; min-width: 10rem;"><span class="p-column-title">Status</span>
                             <span [class]="'product-badge status-' + (device.status ? device.status.toLowerCase() : '')">{{device.status}}</span>
@@ -64,23 +64,48 @@
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="productDialog" [style]="{width: '450px'}" header="Product Details" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="deviceDialog" [style]="{width: '450px'}" header="Device Details" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
-                <img [src]="'assets/demo/images/product/' + product.image" [alt]="product.image" width="150" class="mt-0 mx-auto mb-5 block shadow-2" *ngIf="product.image">
+                <img [src]="'assets/images/devices/' + device.name.toLowerCase() + '.png'" [alt]="device.name" width="150" class="mt-0 mx-auto mb-5 block shadow-2" *ngIf="device.name">
+                <div class="field">
+                    <label for="type">Device Type</label>
+                    <p-dropdown 
+                        [(ngModel)]="device.type_id"
+                        inputId="deviceType"
+                        optionValue="id"
+                        optionLabel="name"
+                        [options]="types"
+                        placeholder="Select">
+                        <!--ng-template pTemplate="selectedItem">
+                            <span *ngIf="device && device.type_id" [class]="'product-badge ' + device.type_id.toString().toLowerCase()">{{device.type_id}}</span>
+                        </ng-template-->
+                        <ng-template pTemplate="option" let-option>
+                            <span [class]="'product-badge ' + option.id.toString().toLowerCase()">{{option.name}}</span>
+                        </ng-template>
+                        <ng-template let-option pTemplate="item">
+                            <span [class]="'product-badge ' + option.id.toString().toLowerCase()">{{option.name}}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
                 <div class="field">
                     <label for="name">Name</label>
-                    <input type="text" pInputText id="name" [(ngModel)]="product.name" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !product.name}"/>
-                    <small class="ng-dirty ng-invalid" *ngIf="submitted && !product.name">Name is required.</small>
+                    <input type="text" pInputText id="label" [(ngModel)]="device.label" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !device.label}"/>
+                    <small class="ng-dirty ng-invalid" *ngIf="submitted && !device.label">Name is required.</small>
+                </div>
+                <div class="field">
+                    <label for="name">Bms id</label>
+                    <input type="text" pInputText id="bms_id" [(ngModel)]="device.bms_id" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !device.bms_id}"/>
+                    <small class="ng-dirty ng-invalid" *ngIf="submitted && !device.bms_id">Bms id is required.</small>
                 </div>
                 <div class="field">
                     <label for="description">Description</label>
-                    <textarea id="description" pInputTextarea [(ngModel)]="product.description" required rows="3" cols="20"></textarea>
+                    <textarea id="description" pInputTextarea [(ngModel)]="device.description" required rows="3" cols="20"></textarea>
                 </div>
                 <div class="field">
                     <label for="status">Inventory Status</label>
-                    <p-dropdown [(ngModel)]="product.inventoryStatus" inputId="inventoryStatus" optionValue="label" [options]="statuses" placeholder="Select">
+                    <p-dropdown [(ngModel)]="device.status" inputId="inventoryStatus" optionValue="label" [options]="statuses" placeholder="Select">
                         <ng-template pTemplate="selectedItem">
-                            <span *ngIf="product && product.inventoryStatus" [class]="'product-badge status-' + product.inventoryStatus.toString().toLowerCase()">{{product.inventoryStatus}}</span>
+                            <span *ngIf="device && device.status" [class]="'product-badge status-' + device.status.toString().toLowerCase()">{{device.status}}</span>
                         </ng-template>
                         <ng-template let-option pTemplate="item">
                             <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
@@ -91,7 +116,7 @@
 
             <ng-template pTemplate="footer">
                 <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-                <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveProduct()"></button>
+                <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveDevice()"></button>
             </ng-template>
         </p-dialog>
 

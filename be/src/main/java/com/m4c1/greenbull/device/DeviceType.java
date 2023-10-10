@@ -1,5 +1,6 @@
 package com.m4c1.greenbull.device;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,6 +36,7 @@ public class DeviceType {
 
     @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
+    @JsonProperty("other_data")
     private Map<String, String> otherData;
 }
 

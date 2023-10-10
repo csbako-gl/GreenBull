@@ -5,7 +5,7 @@ import { Table } from 'primeng/table';
 import { ProductService } from 'src/app/demo/service/product.service';
 import { DeviceService } from 'src/app/service/deviceservice';
 import { ApiResponse } from 'src/app/model/api.response.model';
-import { Device } from 'src/app/model/device.model';
+import { Device, DeviceType } from 'src/app/model/device.model';
 
 @Component({
     templateUrl: './devices.component.html',
@@ -13,7 +13,7 @@ import { Device } from 'src/app/model/device.model';
 })
 export class DevicesComponent implements OnInit {
 
-    productDialog: boolean = false;
+    deviceDialog: boolean = false;
     deleteProductDialog: boolean = false;
     deleteProductsDialog: boolean = false;
     products: Product[] = [];
@@ -22,6 +22,7 @@ export class DevicesComponent implements OnInit {
     submitted: boolean = false;
     cols: any[] = [];
     statuses: any[] = [];
+    types: DeviceType[] = [];
     rowsPerPageOptions = [5, 10, 20];
     devices: Device[] = [];
     device: Device = {};
@@ -34,28 +35,30 @@ export class DevicesComponent implements OnInit {
 
     ngOnInit() {
 
-        this.deviceService.getDevicesByUser().subscribe((resp : ApiResponse) => {
-            this.devices = resp.data;
-
+        this.deviceService.getDevicesByUser().subscribe((resp : Device[]) => {
+            this.devices = resp;
             this.cols = [
                 { field: 'devices', header: 'Devices' },
                 { field: 'statuses', header: 'Status' }
             ];
-
             this.statuses = [
                 { label: 'ACTIVE', value: 'active' },
                 { label: 'OFFLINE', value: 'offline' }
             ];
+        });
 
+        this.deviceService.getDeviceTypes().subscribe((resp : DeviceType[]) => {
+            this.types = resp;
+            //this.types = {...this.types};
         });
 
         //this.productService.getProducts().then(data => this.products = data);
     }
 
     openNew() {
-        this.product = {};
+        this.device = {};
         this.submitted = false;
-        this.productDialog = true;
+        this.deviceDialog = true;
     }
 
     deleteSelectedProducts() {
@@ -68,7 +71,7 @@ export class DevicesComponent implements OnInit {
 
     editProduct(product: Product) {
         this.product = { ...product };
-        this.productDialog = true;
+        this.deviceDialog = true;
     }
 
     deleteProduct(product: Product) {
@@ -91,8 +94,18 @@ export class DevicesComponent implements OnInit {
     }
 
     hideDialog() {
-        this.productDialog = false;
+        this.deviceDialog = false;
         this.submitted = false;
+    }
+
+    saveDevice() {
+        this.submitted = true;
+        console.log('save device');
+        console.dir(this.device);
+
+        this.deviceService.addDevice(this.device).subscribe((resp : ApiResponse) => {
+            console.dir(resp);
+        });
     }
 
     saveProduct() {
@@ -115,7 +128,7 @@ export class DevicesComponent implements OnInit {
             }
 
             this.products = [...this.products];
-            this.productDialog = false;
+            this.deviceDialog = false;
             this.product = {};
         }
     }
