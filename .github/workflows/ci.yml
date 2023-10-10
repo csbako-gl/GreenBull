@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           build-args: |
-            GREENBULL_VERSION=${{ env.GREENBULL_VERSION }}
+            GREENBULL_VERSION=$GREENBULL_VERSION
           context: "./be/"
           push: true
           tags: greenbull-registry.kekmoid.com/greenbull-backend:${{ github.ref_name }}
