@@ -1,6 +1,7 @@
 package com.m4c1.greenbull.api_gateway;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,10 @@ public class RestResponse<T> {
 
     protected T data;
 
-    protected String status;
+    protected int status;
+
+    @JsonProperty("status_msg")
+    protected String statusMsg;
 
     protected String message;
 

@@ -17,5 +17,6 @@ public class DeviceDto {
     private String name;
     private String manufacture;
     private String description;
+    private String bmsId;
     private Map<String, String> otherData;
 }

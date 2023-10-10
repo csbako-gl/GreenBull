@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -121,13 +122,15 @@ public class UserSecurityService {
             log.info("invalid user: {}", username);
             return RestResponse.<String>builder()
                     .data("")
-                    .status(SecurityConstants.STATUS_INVALID_USER_OR_PW)
+                    .statusMsg(SecurityConstants.STATUS_INVALID_USER_OR_PW)
+                    .status(HttpStatus.UNAUTHORIZED.value())
                     .message(SecurityConstants.MESSAGE_INVALID_USER_OR_PW)
                     .build();
         }
 
         try {
-            body.setStatus(user.isUsing2FA() ? SecurityConstants.STATUS_2FA : SecurityConstants.STATUS_SUCCESS);
+            body.setStatusMsg(user.isUsing2FA() ? SecurityConstants.STATUS_2FA : SecurityConstants.STATUS_SUCCESS);
+            body.setStatus(HttpStatus.OK.value());
 
             if (user.isUsing2FA()) {
                 body.setData(username);
@@ -144,7 +147,8 @@ public class UserSecurityService {
             log.info("invalid password for user: {}", username);
             return RestResponse.<String>builder()
                     .data("")
-                    .status(SecurityConstants.STATUS_INVALID_USER_OR_PW)
+                    .statusMsg(SecurityConstants.STATUS_INVALID_USER_OR_PW)
+                    .status(HttpStatus.UNAUTHORIZED.value())
                     .message(SecurityConstants.MESSAGE_INVALID_USER_OR_PW)
                     .build();
         }
@@ -165,7 +169,8 @@ public class UserSecurityService {
             log.info("invalid user: {}", username);
             return RestResponse.<String>builder()
                     .data("")
-                    .status(SecurityConstants.STATUS_INVALID_USER_OR_PW)
+                    .statusMsg(SecurityConstants.STATUS_INVALID_USER_OR_PW)
+                    .status(500)
                     .message(SecurityConstants.MESSAGE_INVALID_USER_OR_PW)
                     .build();
         }
@@ -174,7 +179,8 @@ public class UserSecurityService {
             log.info("invalid verification code: {}", username);
             return RestResponse.<String>builder()
                     .data("")
-                    .status(SecurityConstants.STATUS_INVALID_VERIFICATION)
+                    .statusMsg(SecurityConstants.STATUS_INVALID_VERIFICATION)
+                    .status(500)
                     .message(SecurityConstants.MESSAGE_INVALID_VERIFICATION)
                     .build();
         }
@@ -183,7 +189,8 @@ public class UserSecurityService {
         myAuthenticationSuccessHandler.onAuthenticationSuccess(request, response, auth);
         UserDetails userDetails =  userDetailsService.loadUserByUsername(username);
         body.setToken(jwtUtil.generateToken(userDetails));
-        body.setStatus(SecurityConstants.STATUS_SUCCESS);
+        body.setStatusMsg(SecurityConstants.STATUS_SUCCESS);
+        body.setStatus(200);
 
         return body;
     }
@@ -219,19 +226,22 @@ public class UserSecurityService {
             eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered, request.getLocale(), getAppUrl(request)));
             return RestResponse.<String>builder()
                     .data("")
-                    .status(SecurityConstants.STATUS_SUCCESS)
+                    .statusMsg(SecurityConstants.STATUS_SUCCESS)
+                    .status(HttpStatus.OK.value())
                     .build();
         } catch (UserAlreadyExistException e) {
             log.info("There is an account with that email address : {}", accountDto.getEmail());
             return RestResponse.<String>builder()
                     .data("")
-                    .status(SecurityConstants.STATUS_USERNAME_ALREADY_EXISTS)
+                    .statusMsg(SecurityConstants.STATUS_USERNAME_ALREADY_EXISTS)
+                    .status(HttpStatus.CONFLICT.value())
                     .message(SecurityConstants.MESSAGE_USERNAME_ALREADY_EXISTS)
                     .build();
         } catch (InvalidMatchingPasswordException e) {
             return RestResponse.<String>builder()
                     .data("")
-                    .status(SecurityConstants.STATUS_INVALID_MATCHING_PASSWORD)
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .statusMsg(SecurityConstants.STATUS_INVALID_MATCHING_PASSWORD)
                     .message(SecurityConstants.MESSAGE_INVALID_MATCHING_PASSWORD)
                     .build();
         }

@@ -7,6 +7,7 @@ import { AuthService } from '../../service/authservice';
 import { Store } from '@ngrx/store';
 import { ApiResponse } from 'src/app/model/api.response.model';
 import { LoggedUser } from 'src/app/model/user.model';
+import { ApiSettingsService } from 'src/app/service/api.settings.service';
 
 
 @Component({
@@ -19,6 +20,8 @@ export class AppTopBarComponent {
 
     isMenuVisible: boolean = false;
 
+    version : string = '0.0.0';
+
     @ViewChild('menubutton') menuButton!: ElementRef;
 
     @ViewChild('topbarmenubutton') topbarMenuButton!: ElementRef;
@@ -30,12 +33,21 @@ export class AppTopBarComponent {
         public layoutService: LayoutService, 
         private renderer: Renderer2,
         private store: Store,
-        private authService: AuthService
+        private authService: AuthService,
+        private settingsService: ApiSettingsService
         ) { }
 
     toggleMenu() {
         //console.log('váltáska');
         this.isMenuVisible = !this.isMenuVisible;
+    }
+
+    ngOnInit() {
+        this.settingsService.getVersion().subscribe((ver : string) => {
+            if (ver != null) {
+                this.version = ver;
+            }
+        });
     }
 
     @HostListener('document:click', ['$event'])

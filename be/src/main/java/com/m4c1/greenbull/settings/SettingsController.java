@@ -33,4 +33,8 @@ public class SettingsController {
         return RestResponse.<Void>builder().build();
     }
 
+    @GetMapping("/version")
+    public RestResponse<String> getVersion() {
+        return RestResponse.<String>builder().data(settingsService.getVersion()).build();
+    }
 }

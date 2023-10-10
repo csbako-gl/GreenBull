@@ -15,7 +15,9 @@ export class AuthEffects {
             mergeMap(((data: {type: string, payload: User}) => this.authService.login(data.payload.username, data.payload.password)
                 .pipe(
                 map(data => {
-                    switch (data.status) {
+                    console.log(data.status_msg);
+                    console.dir(data);
+                    switch (data.status_msg) {
                         case 'success': return { type: AuthActions.LOGIN_SUCCESS, token: data.token };
                         case '2fa': return { type: AuthActions.LOGIN2FANEEDED, payload: {username: data.data, password:''}};
                         case 'invalid_user_pw': return { type: AuthActions.LOGIN_FAILURE, username: data.data };
@@ -65,7 +67,7 @@ export class AuthEffects {
             mergeMap(((data: {type: string, payload: User}) => this.authService.login2fa(data.payload.username, data.payload.password)
             .pipe(
                 map(data => {
-                    switch (data.status) {
+                    switch (data.status_msg) {
                         case 'success': return {type: AuthActions.LOGIN_SUCCESS, token: data.token};
                         case 'invalid_verification': return { type: AuthActions.LOGIN2FA_FAILURE, payload: {username: data.data, password:''} };
                         default: return { type: AuthActions.LOGIN2FA_FAILURE, payload: {username: data.data, password:''} };
@@ -119,7 +121,7 @@ export class AuthEffects {
             mergeMap(((data: {type: string, payload: UserCreateData}) => this.authService.register(data.payload)
             .pipe(
                 map(data => {
-                    switch (data.status) {
+                    switch (data.status_msg) {
                         case 'success': return { type: AuthActions.CREATE_USER_SUCCESS, payload: {username: data.data, password:''} };
                         case 'invalid_user_pw': return { type: AuthActions.CREATE_USER_FAILURE, username: data.data };
                         default: return { type: AuthActions.CREATE_USER_FAILURE, token: data.token };

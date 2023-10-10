@@ -73,8 +73,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
                 + " or setup software can assign working details, realize serial data and TCP/IP data package transparent"
                 + " transmission by converter";
         final DeviceType deviceType = createDeviceTypeIfNotFound("USR-W610", "PUSR", desc, new HashMap<>());
-        final Device device = createDeviceIfNotFound("Tibi2", deviceType.getId(), admin.getId());
-        final Device device2 = createDeviceIfNotFound("Tibi3", deviceType.getId(), admin.getId());
+        final Device device = createDeviceIfNotFound("Tibi2", deviceType.getId(), admin.getId(), "TEST000001");
+        final Device device2 = createDeviceIfNotFound("Tibi3", deviceType.getId(), admin.getId(), "TEST000002");
 
         alreadySetup = true;
     }
@@ -127,13 +127,14 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         return deviceType;
     }
 
-    private Device createDeviceIfNotFound(String name, Long deviceTypeId, Long userId) {
+    private Device createDeviceIfNotFound(String name, Long deviceTypeId, Long userId, String bmsId) {
         Device device = deviceRepository.findByUserIdAndName(userId, name).orElse(null);
         if (device == null) {
             device = new Device();
             device.setTypeId(deviceTypeId);
             device.setName(name);
             device.setUserId(userId);
+            device.setBmsId(bmsId);
 
             device = deviceRepository.save(device);
         }

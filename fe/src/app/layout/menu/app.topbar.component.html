@@ -7,6 +7,10 @@
         <img src="assets/layout/images/{{layoutService.config.colorScheme === 'light' ? 'logo-dark' : 'logo-light'}}.svg" alt="logo">
     </a>
 
+    <a class="layout-topbar-version" routerLink="">
+        <span>version: {{version}}</span>
+    </a>
+
     <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button" (click)="layoutService.showProfileSidebar()">
         <i class="pi pi-ellipsis-v"></i>
     </button>

@@ -48,15 +48,15 @@ export class AppLoginExtComponent implements OnInit {
         .then((res: ApiResponse) => {
             console.log('van valasz');
             console.dir(res);
-            if(res?.status == 'success') {
+            if(res?.status_msg == 'success') {
                 this.router.navigate(['ugylet/kiszallitott']);
-            } else if(res?.status == '2fa') {
+            } else if(res?.status_msg == '2fa') {
                 this.router.navigate(['auth/login2fa']);
-            } else if(res?.status == 'invalid_user_pw') {
+            } else if(res?.status_msg == 'invalid_user_pw') {
                 this.invalidUnPw();
                 //this.router.navigate(['auth/login2fa']);
             } else {
-                console.log('error: unknown status:', res?.status );
+                console.log('error: unknown status:', res?.status_msg );
             }
         })
         .catch((error: HttpErrorResponse) => {
