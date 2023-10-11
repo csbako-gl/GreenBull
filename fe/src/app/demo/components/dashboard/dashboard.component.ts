@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { NgxEchartsModule } from 'ngx-echarts'; // Importáld a ngx-echarts modult
@@ -21,6 +21,8 @@ import { BatteryDataService } from 'src/app/service/batterydataservice';
 import { ApiResponse } from 'src/app/model/api.response.model';
 import { BatteryData } from 'src/app/model/battery.data.model';
 import * as ApexCharts from 'apexcharts';
+import { Device } from 'src/app/model/device.model';
+import { DeviceService } from 'src/app/service/deviceservice';
 
 
 export type ChartOptions = {
@@ -43,8 +45,8 @@ const CHART_LIMIT : number = 1500;
 })
 export class DashboardComponent implements OnInit, OnDestroy {
     
-    gaugeChartOptions1: any;
-    gaugeChartOptions2: any;
+    gaugeChartOptions1: any = {};
+    gaugeChartOptions2: any = {};
 
     subscription!: Subscription;
     
@@ -54,6 +56,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     averagevoltage: number = 0;
     deltaVoltage: number = 0;
     lastUpdateTime: string = "";
+    devices: Device[] = [];
+    device: Device = {};
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -61,7 +65,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     constructor(
         public layoutService: LayoutService,
         private elementRef: ElementRef,
-        private batteryDataService: BatteryDataService
+        private deviceService: DeviceService,
+        private batteryDataService: BatteryDataService,
+        private cdr: ChangeDetectorRef,
+        private zone: NgZone
     ) {
         this.subscription = this.layoutService.configUpdate$.subscribe(() => {
         });
@@ -76,13 +83,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.initApexChartData();
-        this.initGaugeChartOptions();
-        this.initLastData();
+        this.initDeviceList();
+    }
+
+    initDeviceList() {
+        this.deviceService.getDevicesByUser().subscribe((resp : Device[]) => {
+            this.devices = resp;
+            if (this.devices?.length > 0) {
+                this.device = this.devices[0];
+            }
+
+            console.log("devices");
+            console.dir(this.devices);
+
+            this.initApexChartData();
+            this.initGaugeChartOptions();
+            this.initLastData();
+        });
     }
 
     initLastData() {
-        this.batteryDataService.getLastBatteryData(-1).subscribe((resp : ApiResponse) => {
+        this.batteryDataService.getLastBatteryData(this?.device?.id ?? -1).subscribe((resp : ApiResponse) => {
             if(resp?.data != null) {
                 this.lastBatteryData = resp.data;
                 if(this.lastBatteryData.pakfeszultseg) {
@@ -126,6 +147,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 //console.dir(this.lastBatteryData.szenzorho1);
                 this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
                 this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
+                
+                this.zone.run(() => {
+                    this.cdr.detectChanges(); // Kényszerítsük ki a Change Detection-öt a NgZone-ban belül
+                    console.log("XXXXXXXXXXXXXXX");
+                });
             }
         });
     }
@@ -311,6 +337,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 tickAmount: 5
             }
         }};
+        //this.cdr.detectChanges();
         window.dispatchEvent(new Event('resize'));
     }
 
@@ -368,6 +395,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             }
         }};
+        //this.cdr.detectChanges();
         window.dispatchEvent(new Event('resize'));
     }
                                 
@@ -375,11 +403,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     
     public initApexChartData() {
-        this.batteryDataService.getBatteryDataLimited(-1/*TODO ide kell majd autmata id kitalélés*/, CHART_LIMIT).subscribe((resp : ApiResponse) => {
-            /*this.dataArray = [];
+        console.log("INit initApexChartData:" + this?.device?.id ?? -1)
+        this.batteryDataService.getBatteryDataLimited(this?.device?.id ?? -1, CHART_LIMIT).subscribe((resp : ApiResponse) => {
+            console.dir(this.dataArray);
+            this.dataArray = [];
             for (let i = 0; i < 16; i++) {
                 this.dataArray.push([]);
-            }*/
+            }
             if(resp?.data?.length > 0) {
                 this.batteryDataArray = resp.data;
                 //console.log('battery data count: ' + this.batteryDataArray.length);
@@ -406,6 +436,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.initChartOption2();
             // this is the MAGIC!!!
             //this.ugyletek = [...this.ugyletek];
+            console.dir(this.dataArray);
         });
     }
 
@@ -435,6 +466,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     initGaugeChartOptions() {
         this.gaugeChartOptions1 = this.getDefaultGaugeChartOptions();
         this.gaugeChartOptions2 = this.getDefaultGaugeChartOptions();
+        this.cdr.detectChanges();
     }
 
     getDefaultGaugeChartOptions() {
@@ -537,6 +569,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         if (this.subscription) {
             this.subscription.unsubscribe();
+        }
+    }
+
+    onDeviceChange(event: any): void {
+        for(var device of this.devices) {
+            if (device.id === event.value) {
+                console.log("megtalálltam a devicet: " + device.label);
+                this.device = device;
+                this.initApexChartData();
+                this.initGaugeChartOptions();
+                this.initLastData();
+                this.cdr.detectChanges();
+                break;
+            }
         }
     }
 }

@@ -1,4 +1,26 @@
-    <div class="grid">
+    <div class="grid dashboard-grid">
+        <div class="col-12">
+            <div class="card mb-0">
+                <div class="field">
+                    <label for="type">Device </label>
+                    <p-dropdown 
+                        [(ngModel)]="device.type_id"
+                        (onChange)="onDeviceChange($event)"
+                        inputId="deviceSelector"
+                        optionValue="id"
+                        optionLabel="label"
+                        [options]="devices"
+                        placeholder="Select">
+                        <ng-template pTemplate="option" let-option>
+                            <span [class]="'product-badge ' + option.id.toString().toLowerCase()">{{option.label}}</span>
+                        </ng-template>
+                        <ng-template let-option pTemplate="item">
+                            <span [class]="'product-badge ' + option.id.toString().toLowerCase()">{{option.label}}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+            </div>
+        </div>
         <div class="col-12 lg:col-6 xl:col-3">
             <div class="card mb-0">
                 <div class="flex justify-content-between mb-3">

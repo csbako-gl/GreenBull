@@ -15,6 +15,7 @@ import * as echarts from 'echarts';
 import { ApexChartModule } from '../apex-chart/apex-chart.modules';
 import { ApexChartComponent } from '../apex-chart/apex-chart.component';
 import { NgApexchartsModule } from "ng-apexcharts";
+import { DropdownModule } from 'primeng/dropdown';
 
 
 @NgModule({
@@ -30,6 +31,7 @@ import { NgApexchartsModule } from "ng-apexcharts";
         DashboardsRoutingModule,
         ApexChartModule,
         NgApexchartsModule,
+        DropdownModule,
         
         NgxEchartsModule.forRoot({ echarts: () => import('echarts') }) // Hozzáadás az importálthoz
     ],

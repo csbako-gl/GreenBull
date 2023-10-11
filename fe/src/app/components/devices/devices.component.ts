@@ -28,7 +28,6 @@ export class DevicesComponent implements OnInit {
     device: Device = {};
 
     constructor(
-        private productService: ProductService,
         private messageService: MessageService,
         private deviceService: DeviceService
     ){ }
