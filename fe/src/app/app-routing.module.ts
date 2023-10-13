@@ -8,6 +8,7 @@ import { AppLayoutComponent } from "./layout/app.layout.component";
 import { AuthGuard } from './auth/guard/auth.guard';
 import {AppLoginExtComponent} from './pages/auth/app.login.ext.component';
 import { UnderConstructionComponent } from './components/under_construction/under.construction.component';
+import { DashboardComponent } from './demo/components/dashboard/dashboard.component';
 
 // TODO itt majd hozzá kell adni a saját oldalakat
 

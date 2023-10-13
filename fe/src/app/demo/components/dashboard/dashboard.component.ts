@@ -23,6 +23,7 @@ import { BatteryData } from 'src/app/model/battery.data.model';
 import * as ApexCharts from 'apexcharts';
 import { Device } from 'src/app/model/device.model';
 import { DeviceService } from 'src/app/service/deviceservice';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 export type ChartOptions = {
@@ -68,10 +69,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
         private deviceService: DeviceService,
         private batteryDataService: BatteryDataService,
         private cdr: ChangeDetectorRef,
-        private zone: NgZone
+        private zone: NgZone,
+        private route: ActivatedRoute,
+        private router: Router
     ) {
         this.subscription = this.layoutService.configUpdate$.subscribe(() => {
         });
+    }
+
+    ngOnInit() {
+
+        this.dataArray = [];
+        this.batteryDataArray = [];
+        this.lastBatteryData = {};
+        this.averagevoltage = 0;
+        this.deltaVoltage = 0;
+        this.lastUpdateTime = "";
+        this.devices = [];
+        this.device = {};
+        this.apexChartOptions1 = {};
+        this.apexChartOptions2 = {};
+        this.gaugeChartOptions1= {};
+        this.gaugeChartOptions2 = {};
 
         this.dataArray = [];
         for (let i = 0; i < 16; i++) {
@@ -80,21 +99,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         this.initChartOption1();
         this.initChartOption2();
+
+        this.route.params.subscribe(params => {
+            const productId = params['id'];
+            this.initDeviceList(productId);
+        });
     }
 
-    ngOnInit() {
-        this.initDeviceList();
-    }
-
-    initDeviceList() {
+    initDeviceList(id: number) {
         this.deviceService.getDevicesByUser().subscribe((resp : Device[]) => {
             this.devices = resp;
-            if (this.devices?.length > 0) {
+            let found: boolean = false;
+            for (let device of this.devices) {
+                if (device.id == id) {
+                    this.device = device;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && this.devices.length > 0) {
                 this.device = this.devices[0];
             }
-
-            console.log("devices");
-            console.dir(this.devices);
 
             this.initApexChartData();
             this.initGaugeChartOptions();
@@ -143,26 +168,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.gaugeChartOptions1.series[0].data[0].name = 'BMS Hőmérséklet';
                 this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.szenzorho1;
                 this.gaugeChartOptions2.series[0].data[0].name = '1. Szenzor Hőmérséklet'
-                //console.log("this.lastBatteryData.bmshomerseklet");
-                //console.dir(this.lastBatteryData.szenzorho1);
                 this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
                 this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
                 
                 this.zone.run(() => {
                     this.cdr.detectChanges(); // Kényszerítsük ki a Change Detection-öt a NgZone-ban belül
-                    console.log("XXXXXXXXXXXXXXX");
                 });
             }
         });
     }
 
-    initChartOption1() {
-        let min = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
+    setChartOptionData() {
+        console.dir(this.dataArray);
+        let min = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
             : new Date("19 Jun 2017").getTime();
-        let max  = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
-            ? this.dataArray[0][this.dataArray[0].size-1][0] 
+        let max  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+            ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date("14 Aug 2017").getTime()
+
         this.apexChartOptions1 = { ...this.apexChartOptions1, ...{
             series: [
                 { name: "c1", data: this.dataArray[0] },
@@ -182,6 +206,53 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 { name: "c15", data: this.dataArray[14] },
                 { name: "c16", data: this.dataArray[15] },
             ],
+            /*chart: {
+                zoom: {
+                    zoomedArea: {
+                        xaxis: {
+                            min: min, // Kezdeti minimum érték
+                            max: max  // Kezdeti maximum érték
+                        }
+                    }
+                },
+            }*/
+        }}
+
+        this.apexChartOptions2 = { ...this.apexChartOptions2, ...{
+            series: [
+                { name: "series1", data: this.dataArray[0] },
+            ],
+            chart: {
+                id: "chart1",
+                height: 90,
+                type: "area",
+                brush: {
+                    target: "chart2",
+                    enabled: true
+                },
+                selection: {
+                    enabled: true,
+                    xaxis: {
+                        min: min,
+                        max: max
+                    }
+                }
+            }
+        }}
+
+        this.cdr.detectChanges();
+        //window.dispatchEvent(new Event('resize'));
+    }
+
+    initChartOption1() {
+        let min = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+            ? this.dataArray[0][0][0] 
+            : new Date("19 Jun 2017").getTime();
+        let max  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+            ? this.dataArray[0][this.dataArray[0].length-1][0] 
+            : new Date("14 Aug 2017").getTime()
+        this.apexChartOptions1 = { ...this.apexChartOptions1, ...{
+            series: [],
             chart: {
                 id: "chart2",
                 type: "line",
@@ -257,7 +328,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             }
                         });
                     },
-                    scrolled: function(chartContext: any, { xaxis }: any) {
+                    /*scrolled: function(chartContext: any, { xaxis }: any) {
                         /*const series : any[] = chartContext?.data?.twoDSeriesX;
                         const seriesY: any[] = chartContext?.data?.twoDSeries;
                         var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
@@ -272,11 +343,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                               min: minmax.min - delta * 2, // Új minimum érték
                               max: minmax.max + delta// Új maximum érték
                             }
-                        });*/
+                        });
                         //this.racalcVerticalZoom(chartContext, xaxis);
-                    },
-                    zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
-                        /*const series : any[] = chartContext?.data?.twoDSeriesX;
+                    },*/
+                    /*zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
+                        const series : any[] = chartContext?.data?.twoDSeriesX;
                         const seriesY: any[] = chartContext?.data?.twoDSeries;
                         var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
                         var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
@@ -290,12 +361,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
                               min: minmax.min - delta * 2, // Új minimum érték
                               max: minmax.max + delta// Új maximum érték
                             }
-                        });*/
-                    },
-                    brushScrolled: function(chartContext: any, { xaxis, yaxis }: any) {
+                        });
+                    },*/
+                    /*brushScrolled: function(chartContext: any, { xaxis, yaxis }: any) {
                         console.log("brushScrolled");
                         console.dir(chartContext);
-                    }
+                    }*/
                 }
             },
             colors: [
@@ -337,20 +408,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 tickAmount: 5
             }
         }};
-        //this.cdr.detectChanges();
+        this.cdr.detectChanges();
         window.dispatchEvent(new Event('resize'));
     }
 
     initChartOption2() {
-        let minX = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
+        let minX = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
             : new Date("19 Jun 2017").getTime();
-        let maxX  = this.dataArray[0]?.size > 0 && this.dataArray[0][0].size > 0 
-            ? this.dataArray[0][this.dataArray[0].size-1][0] 
+        let maxX  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+            ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date("14 Aug 2017").getTime()
         this.apexChartOptions2 = { ...this.apexChartOptions2, ...{
             series: [
-                { name: "series1", data: this.dataArray[0] },
+                //{ name: "series1", data: this.dataArray[0] },
             ],
             chart: {
                 id: "chart1",
@@ -395,7 +466,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             }
         }};
-        //this.cdr.detectChanges();
+        this.cdr.detectChanges();
         window.dispatchEvent(new Event('resize'));
     }
                                 
@@ -403,16 +474,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     
     public initApexChartData() {
-        console.log("INit initApexChartData:" + this?.device?.id ?? -1)
         this.batteryDataService.getBatteryDataLimited(this?.device?.id ?? -1, CHART_LIMIT).subscribe((resp : ApiResponse) => {
-            console.dir(this.dataArray);
-            this.dataArray = [];
-            for (let i = 0; i < 16; i++) {
-                this.dataArray.push([]);
+            for (let i = 0; i < this.dataArray.length; i++) {
+                this.dataArray[i] = [];
             }
             if(resp?.data?.length > 0) {
                 this.batteryDataArray = resp.data;
-                //console.log('battery data count: ' + this.batteryDataArray.length);
                 for(let item of this.batteryDataArray) {
                     this.dataArray[0].push([item.date, this.getChartValue(item.c1)]);
                     this.dataArray[1].push([item.date, this.getChartValue(item.c2)]);
@@ -432,11 +499,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     this.dataArray[15].push([item.date, this.getChartValue(item.c16)]);
                 }
             }
-            this.initChartOption1();
-            this.initChartOption2();
+            //this.initChartOption1();
+            //this.initChartOption2();
+            this.setChartOptionData();
             // this is the MAGIC!!!
             //this.ugyletek = [...this.ugyletek];
-            console.dir(this.dataArray);
         });
     }
 
@@ -507,7 +574,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     var color = 'rgba(' + red + ',' + green + ',1)';
                                     colorStops.push([i/100, color]);
                                 }
-                                //console.dir(colorStops);
                                 return colorStops;
                             })(), 
                             width: 15, // gyűrű vastagság
@@ -575,12 +641,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     onDeviceChange(event: any): void {
         for(var device of this.devices) {
             if (device.id === event.value) {
-                console.log("megtalálltam a devicet: " + device.label);
-                this.device = device;
+                
+                /*this.device = device;
                 this.initApexChartData();
                 this.initGaugeChartOptions();
                 this.initLastData();
-                this.cdr.detectChanges();
+                this.cdr.detectChanges();*/
+                this.router.navigate(['/' + device.id]);
                 break;
             }
         }
