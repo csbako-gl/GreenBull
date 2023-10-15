@@ -24,6 +24,8 @@ import * as ApexCharts from 'apexcharts';
 import { Device } from 'src/app/model/device.model';
 import { DeviceService } from 'src/app/service/deviceservice';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TooltipOptions } from 'primeng/tooltip/tooltip';
+//import { TooltipOptions } from 'chart.js';
 
 
 export type ChartOptions = {
@@ -36,6 +38,7 @@ export type ChartOptions = {
     stroke?: ApexStroke | any;
     markers?: ApexMarkers | any;
     colors?: string[] | any;
+    tooltip?: ApexTooltip;
 };
 
 const CHART_DELTA : number = 0.002;
@@ -368,6 +371,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         console.dir(chartContext);
                     }*/
                 }
+            },
+            tooltip: {
+                x: {
+                    //format: 'MM-dd HH:mm:ss', // A dátumformátumot itt kell helyesen megadni
+                    show: true,
+                    format: "dd MMM yyyy",
+                    formatter: function(timestamp: string | number | Date) {
+                        return new Date(timestamp).toDateString();
+                    }
+                },
             },
             colors: [
                     "#f00",
