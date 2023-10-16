@@ -253,10 +253,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     initChartOption1() {
         let min = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
-            : new Date("19 Jun 2017").getTime();
+            : new Date(Date.now()-24*60*60*1000).getTime();
         let max  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
-            : new Date("14 Aug 2017").getTime()
+            : new Date(Date.now()).getTime()
         this.apexChartOptions1 = { ...this.apexChartOptions1, ...{
             series: [],
             chart: {
@@ -282,6 +282,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     enabled: true
                 },
                 events: {
+                    updated: function(chartContext: any, config: any) {
+                        if(config?.config?.tooltip?.x != null) {
+                            config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
+                        }
+                    },
                     // custom function (not event)
                     findIndex : function(date : any, series : any[] ) : number {
                         let left = 0;
@@ -377,9 +382,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
             },
             tooltip: {
                 x: {
-                    //format: 'MM-dd HH:mm:ss', // A dátumformátumot itt kell helyesen megadni
+                    format: 'MM-dd HH:mm:ss', // A dátumformátumot itt kell helyesen megadni
                     show: true,
-                    format: "dd MMM yyyy",
                     formatter: function(timestamp: string | number | Date) {
                         return new Date(timestamp).toDateString();
                     }
