@@ -62,6 +62,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     lastUpdateTime: string = "";
     devices: Device[] = [];
     device: Device = {};
+    rangeDates: Date[] = [new Date(), new Date()];
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -490,9 +491,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         window.dispatchEvent(new Event('resize'));
     }
                                 
-    public onApexLabelClick() {
-    }
-    
     public initApexChartData() {
         this.batteryDataService.getBatteryDataLimited(this?.device?.id ?? -1, CHART_LIMIT).subscribe((resp : ApiResponse) => {
             for (let i = 0; i < this.dataArray.length; i++) {
