@@ -23,7 +23,7 @@ import { BatteryData } from 'src/app/model/battery.data.model';
 import * as ApexCharts from 'apexcharts';
 import { Device } from 'src/app/model/device.model';
 import { DeviceService } from 'src/app/service/deviceservice';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, NavigationExtras, Router } from '@angular/router';
 import { TooltipOptions } from 'primeng/tooltip/tooltip';
 //import { TooltipOptions } from 'chart.js';
 
@@ -73,11 +73,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         private batteryDataService: BatteryDataService,
         private cdr: ChangeDetectorRef,
         private zone: NgZone,
-        private route: ActivatedRoute,
-        private router: Router
+        private router: Router,
     ) {
         this.subscription = this.layoutService.configUpdate$.subscribe(() => {
         });
+
+        // This is needed by this.router.navigate( ['/']); without this ngOnInit not runs on rerouting to this page
+        this.router.routeReuseStrategy.shouldReuseRoute = function(){
+            return false;
+        }
     }
 
     ngOnInit() {
@@ -103,10 +107,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.initChartOption1();
         this.initChartOption2();
 
-        this.route.params.subscribe(params => {
-            const productId = params['id'];
-            this.initDeviceList(productId);
-        });
+        const deviceId = localStorage.getItem('device') ?? '-1';
+        console.log('ngOnInit device:'+ deviceId);
+        this.initDeviceList(parseInt(deviceId, 10));
     }
 
     initDeviceList(id: number) {
@@ -654,13 +657,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     onDeviceChange(event: any): void {
         for(var device of this.devices) {
             if (device.id === event.value) {
-                
-                /*this.device = device;
-                this.initApexChartData();
-                this.initGaugeChartOptions();
-                this.initLastData();
-                this.cdr.detectChanges();*/
-                this.router.navigate(['/' + device.id]);
+                localStorage.setItem('device', device.id == null ? '' : device.id?.toString());
+                this.router.navigate( ['/']);
+
+                // mindent is újra betölt reloadol!!! JOLY JOKER!!! 
+                //location.reload();
                 break;
             }
         }
