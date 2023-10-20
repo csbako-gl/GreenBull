@@ -1,9 +1,6 @@
 package com.m4c1.greenbull.security.user;
 
-import com.m4c1.greenbull.security.privilege.Privilege;
 import com.m4c1.greenbull.security.privilege.PrivilegeDto;
-import com.m4c1.greenbull.security.role.Role;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;

@@ -67,13 +67,14 @@ public class BatteryDataController {
         return RestResponse.<List<BatteryData>>builder().data(data).build();
     }
 
-    @GetMapping("/get_all_from_to")
+    @GetMapping("/get_from_to")
     RestResponse<List<BatteryData>> getAll(
             @RequestParam("device_id") Long deviceId,
             @RequestParam("from") Date from,
-            @RequestParam("from") Date to
+            @RequestParam("to") Date to,
+            @RequestParam(name = "limit", defaultValue = "1500") Long limit
     ) {
-        List<BatteryData> data = batteryDataService.findByDeviceIdFromAndToDate(deviceId, from, to);
+        List<BatteryData> data = batteryDataService.findByDeviceIdFromAndToDate(deviceId, from, to, limit);
         return RestResponse.<List<BatteryData>>builder().data(data).build();
     }
 }

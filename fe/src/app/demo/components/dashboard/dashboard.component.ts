@@ -63,6 +63,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     devices: Device[] = [];
     device: Device = {};
     rangeDates: Date[] = [new Date(), new Date()];
+    dateFrom: Date = new Date();
+    dateTo: Date = new Date();
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -108,9 +110,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.initChartOption1();
         this.initChartOption2();
 
+        this.initDates();
+
         const deviceId = localStorage.getItem('device') ?? '-1';
-        console.log('ngOnInit device:'+ deviceId);
         this.initDeviceList(parseInt(deviceId, 10));
+    }
+
+    initDates() {
+        let now = new Date();
+        let from: string | null = localStorage.getItem('dateFrom');
+        let to: string | null = localStorage.getItem('dateTo');
+        this.dateFrom = (from == null || from == 'Invalid Date') ? new Date(now) : new Date(parseInt(from));
+        this.dateTo = (to == null || to == 'Invalid Date') ? new Date(now) : new Date(parseInt(to));
+    }
+
+    setDefaultDate() {
+        let now = new Date();
+        this.dateFrom = new Date(now);
+        this.dateTo = new Date(now);
+        localStorage.setItem('dateFrom', this.dateFrom.getTime().toString());
+        localStorage.setItem('dateTo', this.dateTo.getTime().toString());
     }
 
     initDeviceList(id: number) {
@@ -189,10 +208,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.dir(this.dataArray);
         let min = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
-            : new Date("19 Jun 2017").getTime();
+            : new Date().getTime();
         let max  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
-            : new Date("14 Aug 2017").getTime()
+            : new Date().getTime()
 
         this.apexChartOptions1 = { ...this.apexChartOptions1, ...{
             series: [
@@ -247,6 +266,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
         }}
 
+        console.log('Try to refresh');
         this.cdr.detectChanges();
         //window.dispatchEvent(new Event('resize'));
     }
@@ -492,37 +512,66 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
                                 
     public initApexChartData() {
-        this.batteryDataService.getBatteryDataLimited(this?.device?.id ?? -1, CHART_LIMIT).subscribe((resp : ApiResponse) => {
-            for (let i = 0; i < this.dataArray.length; i++) {
-                this.dataArray[i] = [];
-            }
-            if(resp?.data?.length > 0) {
-                this.batteryDataArray = resp.data;
-                for(let item of this.batteryDataArray) {
-                    this.dataArray[0].push([item.date, this.getChartValue(item.c1)]);
-                    this.dataArray[1].push([item.date, this.getChartValue(item.c2)]);
-                    this.dataArray[2].push([item.date, this.getChartValue(item.c3)]);
-                    this.dataArray[3].push([item.date, this.getChartValue(item.c4)]);
-                    this.dataArray[4].push([item.date, this.getChartValue(item.c5)]);
-                    this.dataArray[5].push([item.date, this.getChartValue(item.c6)]);
-                    this.dataArray[6].push([item.date, this.getChartValue(item.c7)]);
-                    this.dataArray[7].push([item.date, this.getChartValue(item.c8)]);
-                    this.dataArray[8].push([item.date, this.getChartValue(item.c9)]);
-                    this.dataArray[9].push([item.date, this.getChartValue(item.c10)]);
-                    this.dataArray[10].push([item.date, this.getChartValue(item.c11)]);
-                    this.dataArray[11].push([item.date, this.getChartValue(item.c12)]);
-                    this.dataArray[12].push([item.date, this.getChartValue(item.c13)]);
-                    this.dataArray[13].push([item.date, this.getChartValue(item.c14)]);
-                    this.dataArray[14].push([item.date, this.getChartValue(item.c15)]);
-                    this.dataArray[15].push([item.date, this.getChartValue(item.c16)]);
+        if(this.dateFrom == null ||this.dateTo == null || this.dateFrom.getTime() == this.dateTo.getTime()) {
+            this.batteryDataService.getBatteryDataLimited(
+                this?.device?.id ?? -1,
+                CHART_LIMIT
+            ).subscribe((data : BatteryData[]) => {
+                this.initApexChartDataWithData(data);
+                if(this.dataArray[0]?.length > 0) {
+                    let now = new Date();
+                    let from = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+                        ? this.dataArray[0][0][0] 
+                        : now.getTime();
+                    let to  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+                        ? this.dataArray[0][this.dataArray[0].length-1][0] 
+                        : now.getTime();
+                    this.dateFrom = from == null ? now : new Date(parseInt(from));
+                    this.dateTo = to == null ? now : new Date(parseInt(to));
                 }
+            });
+        } else {
+            this.batteryDataService.getBatteryDataFromTo(
+                this?.device?.id ?? -1,
+                this.dateFrom,
+                this.dateTo,
+                CHART_LIMIT
+            ).subscribe((data : BatteryData[]) => {
+                this.initApexChartDataWithData(data);
+            });
+        }
+    }
+
+    private initApexChartDataWithData(data: BatteryData[]) {
+        for (let i = 0; i < this.dataArray.length; i++) {
+            this.dataArray[i] = [];
+        }
+        if(data?.length > 0) {
+            this.batteryDataArray = data;
+            for(let item of this.batteryDataArray) {
+                this.dataArray[0].push([item.date, this.getChartValue(item.c1)]);
+                this.dataArray[1].push([item.date, this.getChartValue(item.c2)]);
+                this.dataArray[2].push([item.date, this.getChartValue(item.c3)]);
+                this.dataArray[3].push([item.date, this.getChartValue(item.c4)]);
+                this.dataArray[4].push([item.date, this.getChartValue(item.c5)]);
+                this.dataArray[5].push([item.date, this.getChartValue(item.c6)]);
+                this.dataArray[6].push([item.date, this.getChartValue(item.c7)]);
+                this.dataArray[7].push([item.date, this.getChartValue(item.c8)]);
+                this.dataArray[8].push([item.date, this.getChartValue(item.c9)]);
+                this.dataArray[9].push([item.date, this.getChartValue(item.c10)]);
+                this.dataArray[10].push([item.date, this.getChartValue(item.c11)]);
+                this.dataArray[11].push([item.date, this.getChartValue(item.c12)]);
+                this.dataArray[12].push([item.date, this.getChartValue(item.c13)]);
+                this.dataArray[13].push([item.date, this.getChartValue(item.c14)]);
+                this.dataArray[14].push([item.date, this.getChartValue(item.c15)]);
+                this.dataArray[15].push([item.date, this.getChartValue(item.c16)]);
             }
-            //this.initChartOption1();
-            //this.initChartOption2();
-            this.setChartOptionData();
-            // this is the MAGIC!!!
-            //this.ugyletek = [...this.ugyletek];
-        });
+        }
+        //this.initChartOption1();
+        //this.initChartOption2();
+        this.setChartOptionData();
+        // this is the MAGIC!!!
+        //this.ugyletek = [...this.ugyletek];
     }
 
     private getChartValue(item: any) {
@@ -660,13 +709,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
         for(var device of this.devices) {
             if (device.id === event.value) {
                 localStorage.setItem('device', device.id == null ? '' : device.id?.toString());
+                this.setDefaultDate();
                 this.router.navigate( ['/']);
-
                 // mindent is újra betölt reloadol!!! JOLY JOKER!!! 
                 //location.reload();
                 break;
             }
         }
+    }
+
+    onGetDataButton(event: any): void {
+        localStorage.setItem('dateFrom', this.dateFrom.getTime().toString());
+        localStorage.setItem('dateTo', this.dateTo.getTime().toString());
+        this.router.navigate( ['/']);
     }
 }
                                     

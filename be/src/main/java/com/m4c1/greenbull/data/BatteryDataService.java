@@ -187,7 +187,22 @@ public class BatteryDataService {
         return batteryDataRepository.findByDeviceIdFromDate(deviceId, dateFrom);
     }
 
-    public List<BatteryData> findByDeviceIdFromAndToDate(Long deviceId, Date dateFrom, Date dateTo) {
-        return batteryDataRepository.findByDeviceIdFromAndToDate(deviceId, dateFrom, dateTo);
+    public List<BatteryData> findByDeviceIdFromAndToDate(Long deviceId, Date dateFrom, Date dateTo, Long limit) {
+        List<BatteryData> batteryData = batteryDataRepository.findByDeviceIdFromAndToDate(deviceId, dateFrom, dateTo);
+        if (batteryData.size() <= limit) {
+            return batteryData;
+        }
+
+        int step = (int)((batteryData.size() + limit - 1) / limit);
+        List<BatteryData> avgData = new ArrayList<>();
+        for (int i = 0; i < batteryData.size(); i+= step) {
+            int count = i + step < batteryData.size()
+                    ? step
+                    : batteryData.size() - i;
+            BatteryData avg = new BatteryData(batteryData.subList(i, i + count));
+            avgData.add(avg);
+        }
+
+        return avgData;
     }
 }
