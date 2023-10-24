@@ -25,6 +25,7 @@ import { Device } from 'src/app/model/device.model';
 import { DeviceService } from 'src/app/service/deviceservice';
 import { ActivatedRoute, NavigationEnd, NavigationExtras, Router } from '@angular/router';
 import { TooltipOptions } from 'primeng/tooltip/tooltip';
+import { SelectItem } from 'primeng/api';
 //import { TooltipOptions } from 'chart.js';
 
 
@@ -65,6 +66,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     rangeDates: Date[] = [new Date(), new Date()];
     dateFrom: Date = new Date();
     dateTo: Date = new Date();
+    dataTypes: SelectItem[] = [];
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -100,6 +102,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.apexChartOptions2 = {};
         this.gaugeChartOptions1= {};
         this.gaugeChartOptions2 = {};
+
+        this.dataTypes = [
+            { label: 'Cell voltage', value: 'cellvoltage' },
+            { label: 'Remain capacity', value: 'toltesszint' }, //töltöttség
+            { label: 'PACK current', value: 'toltesmerites' },
+            { label: 'Stat Values', value: 'stat' } // cella átlag, minimum, maximum, delta
+        ];
 
         this.dataArray = [];
         for (let i = 0; i < 16; i++) {
@@ -729,5 +738,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         localStorage.setItem('dateTo', this.dateTo.getTime().toString());
         this.router.navigate( ['/']);
     }
-}
-                                    
+
+    onDataTypeChange(event: any): void {
+
+    }
+}    
