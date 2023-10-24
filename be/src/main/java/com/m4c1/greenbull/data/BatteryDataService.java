@@ -27,7 +27,7 @@ public class BatteryDataService {
     @Autowired
     UserSecurityService userSecurityService;
 
-    public void addData(BatteryDataDto dto) {
+    public void addData(BatteryDataInputDto dto) {
 
         if (dto == null) {
             throw new RestException("Error battery data is null!");
@@ -44,7 +44,7 @@ public class BatteryDataService {
             throw new RestException(("hex data is null!"));
         }
 
-        BatteryData data = processDto(dto);
+        BatteryData data = processDtoNew(dto);
         if (data == null) {
             throw new RestException("can not process battery data dto: " + dto.toString());
         }
@@ -55,7 +55,7 @@ public class BatteryDataService {
         batteryDataRepository.save(data);
     }
 
-    private BatteryData processDto(BatteryDataDto dto) {
+    private BatteryData processDto(BatteryDataInputDto dto) {
         if (dto.getHexData() == null || dto.getHexData().length < 141 ) {
             throw new RestException("hex data is null or to small: " + (dto.getHexData() == null ? "null" : dto.getHexData().length));
         }
@@ -130,22 +130,104 @@ public class BatteryDataService {
         return data;
     }
 
+    private BatteryData processDtoNew(BatteryDataInputDto dto) {
+        if (dto.getHexData() == null || dto.getHexData().length < 141 ) {
+            throw new RestException("hex data is null or to small: " + (dto.getHexData() == null ? "null" : dto.getHexData().length));
+        }
+
+        BatteryData data = new BatteryData();
+        byte[] receivedData = dto.getHexData();
+        byte[] dataBytes;
+
+        // 0 first byte is 7E (SOI)
+        // 1-2 version: that is veision 25H， V2.5
+        // 3-4 address 2 bytes (ADR， the battery address is 0)
+        // 5-6 CID1 2 bytes
+        // 7-8 RTN 2 bytes
+        // 9-12 Length, (LENGTH， F07A， LENID is 07AH， DATAINFO length is 122 ， LCHKSUM is FH)
+        // 13-14 (INFOFLAG is 00H。 other information is DATAI)
+        // 15-16 (COMMAND， as ADR， 00H)
+
+        // 17-18 battery cell count (battery cell number M， is 10H， that has 16 cell)
+        dataBytes = Arrays.copyOfRange(receivedData, 17, 19);
+        final int cellCount = getIntFromAscii2Bytes(dataBytes);
+
+        if (cellCount == 0) {
+            throw new RestException("cell voltage count is 0");
+        }
+
+        data.setCell(new Integer[cellCount]);
+        // cell voltage if 19-82 (19 - 19+(cellcount*4)) first cell voltage： 0D37H， that’s 3383mV
+        for (int cell = 0; cell < cellCount; cell++) {
+            data.getCell()[cell] = extractCellValue(receivedData, 19 + cell * 4);
+        }
+        int index = 19 + cellCount * 4;
+
+        // (83-84) temperature number N， 06H， has 6 temperatures
+        dataBytes = Arrays.copyOfRange(receivedData, index, index + 2);
+        final int tempCount = getIntFromAscii2Bytes(dataBytes);
+        index += 2;
+
+        if (tempCount != 0) {
+            data.setTemperature(new Short[tempCount]);
+            // (85-108)  4 bytes first temperatur： 0BAAH， that’s 2986， 25.6℃
+            for (int temp = 0; temp < tempCount; temp++) {
+                dataBytes = Arrays.copyOfRange(receivedData, index + temp * 4, index + (temp + 1) * 4);
+                data.getTemperature()[temp] = (short)(getIntFromAscii4Bytes(dataBytes) - 2730);
+            }
+            index += (tempCount * 4);
+        }
+
+        // (109-112) PACK current， 0000H， unit10mA， range： -327.68A-+327.67A
+        dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
+        data.setToltesmerites(getIntFromAscii4Bytes(dataBytes));
+        index += 4;
+
+        // (113-116) PACK total voltage， CF94H that’s 53.140V
+        dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
+        data.setPakfeszultseg(getIntFromAscii4Bytes(dataBytes));
+        index += 4;
+
+        // (117-120) PACK remain capacity， 06D6H that’s 17.50AH
+        dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
+        data.setToltesszint(getIntFromAscii4Bytes(dataBytes));
+        index += 4;
+
+        // (121-122) user define number P， 03H
+        dataBytes = Arrays.copyOfRange(receivedData, index, index + 2);
+        final int userDataCount = getIntFromAscii2Bytes(dataBytes);
+        index += 2;
+
+        if (userDataCount >= 3) {
+            // (123-126) PACK full capacity， 1388H that’s 50.00AH
+            // dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
+            index += 4;
+
+            // (127-130) cycle times
+            dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
+            data.setCiklusszam(getIntFromAscii4Bytes(dataBytes));
+            index += 4;
+
+            // (131-133) PACK design capacity， 1388H that’s 50.00AH
+            // dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
+            index += 4;
+        }
+
+        return data;
+    }
+
     private int getIntFromAscii4Bytes(byte[] buffer) {
         return  Integer.parseInt(String.valueOf(
                 (char)buffer[0]) +
                 (char)(buffer[1]) +
                 (char)(buffer[2]) +
                 (char)(buffer[3]), 16);
-
-                /*(buffer[0] << 24) |
-                ((buffer[1] & 0xFF) << 16) |
-                ((buffer[2] & 0xFF) << 8) |
-                (buffer[3] & 0xFF);*/
     }
 
     private int getIntFromAscii2Bytes(byte[] buffer) {
-        return  ((buffer[0] & 0xFF) << 8) |
-                (buffer[1] & 0xFF);
+        return  Integer.parseInt(String.valueOf(
+                (char)buffer[0]) +
+                (char)(buffer[1]), 16);
     }
 
     private int extractCellValue(byte[] receivedData, int startIndex) {

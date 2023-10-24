@@ -89,7 +89,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
 
-        this.dataArray = [];
         this.batteryDataArray = [];
         this.lastBatteryData = {};
         this.averagevoltage = 0;
@@ -161,22 +160,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     this.lastBatteryData.pakfeszultseg /= 100;
                 }
                 const voltages: number[] = [];
-                if (this.lastBatteryData.c1) voltages.push(this.lastBatteryData.c1);
-                if (this.lastBatteryData.c2) voltages.push(this.lastBatteryData.c2);
-                if (this.lastBatteryData.c3) voltages.push(this.lastBatteryData.c3);
-                if (this.lastBatteryData.c4) voltages.push(this.lastBatteryData.c4);
-                if (this.lastBatteryData.c5) voltages.push(this.lastBatteryData.c5);
-                if (this.lastBatteryData.c6) voltages.push(this.lastBatteryData.c6);
-                if (this.lastBatteryData.c7) voltages.push(this.lastBatteryData.c7);
-                if (this.lastBatteryData.c8) voltages.push(this.lastBatteryData.c8);
-                if (this.lastBatteryData.c9) voltages.push(this.lastBatteryData.c9);
-                if (this.lastBatteryData.c10) voltages.push(this.lastBatteryData.c10);
-                if (this.lastBatteryData.c11) voltages.push(this.lastBatteryData.c11);
-                if (this.lastBatteryData.c12) voltages.push(this.lastBatteryData.c12);
-                if (this.lastBatteryData.c13) voltages.push(this.lastBatteryData.c13);
-                if (this.lastBatteryData.c14) voltages.push(this.lastBatteryData.c14);
-                if (this.lastBatteryData.c15) voltages.push(this.lastBatteryData.c15);
-                if (this.lastBatteryData.c16) voltages.push(this.lastBatteryData.c16);
+                if(this.lastBatteryData.cell && this.lastBatteryData.cell.length > 0) {
+                    for (let i = 0; i < this?.lastBatteryData?.cell?.length; i++) {
+                        voltages.push(this.lastBatteryData.cell[i]);
+                    }
+                }
+
                 let sum : number = 0;
                 let min : number = voltages[0];
                 let max : number = voltages[0];
@@ -186,14 +175,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     if(max < voltages[i]) max = voltages[i];
                 }
                 this.lastBatteryData = {...this.lastBatteryData};
-                this.averagevoltage = (sum/16/1000);
+                this.averagevoltage = (sum/1000) / (this.lastBatteryData.cell ? this.lastBatteryData.cell.length : 1);
                 this.deltaVoltage = (max-min) /1000;
                 if(this.lastBatteryData.date) this.lastUpdateTime = format(this.lastBatteryData.date, 'yyyy-MM-dd HH:mm:ss');
 
-                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData.bmshomerseklet;
+                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData.temperature ? this.lastBatteryData.temperature[5] : 0;
                 this.gaugeChartOptions1.series[0].data[0].name = 'BMS Hőmérséklet';
-                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.szenzorho1;
-                this.gaugeChartOptions2.series[0].data[0].name = '1. Szenzor Hőmérséklet'
+                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.temperature ? this.lastBatteryData.temperature[4] : 0;
+                this.gaugeChartOptions2.series[0].data[0].name = 'Env Szenzor Hőmérséklet'
                 this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
                 this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
                 
@@ -213,36 +202,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date().getTime()
 
-        this.apexChartOptions1 = { ...this.apexChartOptions1, ...{
-            series: [
-                { name: "c1", data: this.dataArray[0] },
-                { name: "c2", data: this.dataArray[1] },
-                { name: "c3", data: this.dataArray[2] },
-                { name: "c4", data: this.dataArray[3] },
-                { name: "c5", data: this.dataArray[4] },
-                { name: "c6", data: this.dataArray[5] },
-                { name: "c7", data: this.dataArray[6] },
-                { name: "c8", data: this.dataArray[7] },
-                { name: "c9", data: this.dataArray[8] },
-                { name: "c10", data: this.dataArray[9] },
-                { name: "c11", data: this.dataArray[10] },
-                { name: "c12", data: this.dataArray[11] },
-                { name: "c13", data: this.dataArray[12] },
-                { name: "c14", data: this.dataArray[13] },
-                { name: "c15", data: this.dataArray[14] },
-                { name: "c16", data: this.dataArray[15] },
-            ],
-            /*chart: {
-                zoom: {
-                    zoomedArea: {
-                        xaxis: {
-                            min: min, // Kezdeti minimum érték
-                            max: max  // Kezdeti maximum érték
-                        }
-                    }
-                },
-            }*/
-        }}
+        this.apexChartOptions1.series = [];
+        for (let i = 0; i < this.dataArray.length; i++) {
+            this.apexChartOptions1.series.push({
+                name: `cell${i + 1}`,
+                data: this.dataArray[i]
+            });
+        }
+
+        this.apexChartOptions1 = { ...this.apexChartOptions1};
 
         this.apexChartOptions2 = { ...this.apexChartOptions2, ...{
             series: [
@@ -426,6 +394,54 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     "#0026ff",
                     "#7300ff",
                     "#d400ff",
+                    "#ff00b7",
+                    "#f00",
+                    "#ff5900",
+                    "#f90",
+                    "#ffd000",
+                    "#fff700",
+                    "#d4ff00",
+                    "#95ff00",
+                    "#2bff00",
+                    "#00ff73",
+                    "#00ffbf",
+                    "#00eaff",
+                    "#08f",
+                    "#0026ff",
+                    "#7300ff",
+                    "#d400ff",
+                    "#ff00b7",
+                    "#f00",
+                    "#ff5900",
+                    "#f90",
+                    "#ffd000",
+                    "#fff700",
+                    "#d4ff00",
+                    "#95ff00",
+                    "#2bff00",
+                    "#00ff73",
+                    "#00ffbf",
+                    "#00eaff",
+                    "#08f",
+                    "#0026ff",
+                    "#7300ff",
+                    "#d400ff",
+                    "#ff00b7",
+                    "#f00",
+                    "#ff5900",
+                    "#f90",
+                    "#ffd000",
+                    "#fff700",
+                    "#d4ff00",
+                    "#95ff00",
+                    "#2bff00",
+                    "#00ff73",
+                    "#00ffbf",
+                    "#00eaff",
+                    "#08f",
+                    "#0026ff",
+                    "#7300ff",
+                    "#d400ff",
                     "#ff00b7"
                 ],
             stroke: {
@@ -543,28 +559,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     private initApexChartDataWithData(data: BatteryData[]) {
+        // TODO ide kell még egy újraméretezés:
         for (let i = 0; i < this.dataArray.length; i++) {
             this.dataArray[i] = [];
         }
         if(data?.length > 0) {
             this.batteryDataArray = data;
             for(let item of this.batteryDataArray) {
-                this.dataArray[0].push([item.date, this.getChartValue(item.c1)]);
-                this.dataArray[1].push([item.date, this.getChartValue(item.c2)]);
-                this.dataArray[2].push([item.date, this.getChartValue(item.c3)]);
-                this.dataArray[3].push([item.date, this.getChartValue(item.c4)]);
-                this.dataArray[4].push([item.date, this.getChartValue(item.c5)]);
-                this.dataArray[5].push([item.date, this.getChartValue(item.c6)]);
-                this.dataArray[6].push([item.date, this.getChartValue(item.c7)]);
-                this.dataArray[7].push([item.date, this.getChartValue(item.c8)]);
-                this.dataArray[8].push([item.date, this.getChartValue(item.c9)]);
-                this.dataArray[9].push([item.date, this.getChartValue(item.c10)]);
-                this.dataArray[10].push([item.date, this.getChartValue(item.c11)]);
-                this.dataArray[11].push([item.date, this.getChartValue(item.c12)]);
-                this.dataArray[12].push([item.date, this.getChartValue(item.c13)]);
-                this.dataArray[13].push([item.date, this.getChartValue(item.c14)]);
-                this.dataArray[14].push([item.date, this.getChartValue(item.c15)]);
-                this.dataArray[15].push([item.date, this.getChartValue(item.c16)]);
+                if (item.cell) {
+                    for (let i = 0; i < item.cell.length; i++) {
+                        this.dataArray[i].push([item.date, this.getChartValue(item.cell[i])]);
+                    }
+                }
             }
         }
         //this.initChartOption1();

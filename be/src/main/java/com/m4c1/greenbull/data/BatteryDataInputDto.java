@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BatteryDataDto {
+public class BatteryDataInputDto {
 
     @JsonProperty("bms_id")
     private String bmsId;
