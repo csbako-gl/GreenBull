@@ -26,6 +26,7 @@ import { DeviceService } from 'src/app/service/deviceservice';
 import { ActivatedRoute, NavigationEnd, NavigationExtras, Router } from '@angular/router';
 import { TooltipOptions } from 'primeng/tooltip/tooltip';
 import { SelectItem } from 'primeng/api';
+import { type } from 'os';
 //import { TooltipOptions } from 'chart.js';
 
 
@@ -45,9 +46,26 @@ export type ChartOptions = {
 const CHART_DELTA : number = 0.002;
 const CHART_LIMIT : number = 1500;
 
+export enum DataType {
+    NONE = 'None',
+    CELL_VOLTAGE = 'cellvoltage',
+    TEMPERATURE = 'temperature',
+    REMAIN_CAPACITY = 'remaincapacity',
+    PACK_CURRENT = 'packcurrent',
+    STAT = 'stat'    
+};
+
+export type Stats = {
+    min: number;
+    max: number;
+    avg: number;
+    delta: number;
+};
+
 @Component({
     templateUrl: './dashboard.component.html',
 })
+
 export class DashboardComponent implements OnInit, OnDestroy {
     
     gaugeChartOptions1: any = {};
@@ -67,6 +85,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     dateFrom: Date = new Date();
     dateTo: Date = new Date();
     dataTypes: SelectItem[] = [];
+    dataType: string = DataType.CELL_VOLTAGE;
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -104,10 +123,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.gaugeChartOptions2 = {};
 
         this.dataTypes = [
-            { label: 'Cell voltage', value: 'cellvoltage' },
-            { label: 'Remain capacity', value: 'toltesszint' }, //töltöttség
-            { label: 'PACK current', value: 'toltesmerites' },
-            { label: 'Stat Values', value: 'stat' } // cella átlag, minimum, maximum, delta
+            { label: 'Cell voltage', value: DataType.CELL_VOLTAGE },
+            { label: 'Temperature', value: DataType.TEMPERATURE },
+            { label: 'Remain capacity', value: DataType.REMAIN_CAPACITY /*'toltesszint'*/ }, //töltöttség
+            { label: 'PACK current', value: DataType.PACK_CURRENT }, // 'toltesmerites'
+            { label: 'Stat Values', value: DataType.STAT } // cella átlag, minimum, maximum, delta
         ];
 
         this.dataArray = [];
@@ -130,6 +150,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         let to: string | null = localStorage.getItem('dateTo');
         this.dateFrom = (from == null || from == 'Invalid Date') ? new Date(now) : new Date(parseInt(from));
         this.dateTo = (to == null || to == 'Invalid Date') ? new Date(now) : new Date(parseInt(to));
+        
+        let type: string | null = localStorage.getItem('dataType');
+        this.dataType = (type == null) ? DataType.CELL_VOLTAGE : type;
     }
 
     setDefaultDate() {
@@ -213,8 +236,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         this.apexChartOptions1.series = [];
         for (let i = 0; i < this.dataArray.length; i++) {
+            let name: string = '';
+            switch(this.dataType) {
+                case DataType.CELL_VOLTAGE:
+                    name = `cell${i + 1}`;
+                    break;
+                case DataType.TEMPERATURE:
+                    name = `temperature ${i + 1}`;
+                    break;
+                case DataType.REMAIN_CAPACITY:
+                    name = `remain capacity`;
+                    break;
+                case DataType.PACK_CURRENT:
+                    name = `pack current`;
+                    break;
+                case DataType.STAT:
+                    switch (i) {
+                        case 0: name = `min`; break;
+                        case 1: name = `max`; break;
+                        case 2: name = `delta`; break;
+                        case 3: name = `avg`; break;
+                    }
+                    break;
+            }
             this.apexChartOptions1.series.push({
-                name: `cell${i + 1}`,
+                name: name,
                 data: this.dataArray[i]
             });
         }
@@ -454,7 +500,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     "#ff00b7"
                 ],
             stroke: {
-                width: 1,
+                width: 2,   // vonalvastagság
                 curve: "smooth"
             },
             dataLabels: {
@@ -569,16 +615,77 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     private initApexChartDataWithData(data: BatteryData[]) {
         // TODO ide kell még egy újraméretezés:
-        for (let i = 0; i < this.dataArray.length; i++) {
-            this.dataArray[i] = [];
-        }
         if(data?.length > 0) {
             this.batteryDataArray = data;
-            for(let item of this.batteryDataArray) {
-                if (item.cell) {
-                    for (let i = 0; i < item.cell.length; i++) {
-                        this.dataArray[i].push([item.date, this.getChartValue(item.cell[i])]);
+            this.dataArray = [];
+            switch (this.dataType) {
+                case DataType.CELL_VOLTAGE: {
+                    for (let i = 0; this.batteryDataArray[0].cell != null && i < this.batteryDataArray[0]?.cell?.length; i++) {
+                        this.dataArray.push([]);
                     }
+                    break;
+                }
+    
+                case DataType.TEMPERATURE:
+                    for (let i = 0; this.batteryDataArray[0].temperature != null && i < this.batteryDataArray[0]?.temperature?.length; i++) {
+                        this.dataArray.push([]);
+                    }
+                    break;
+
+                case DataType.PACK_CURRENT:
+                case DataType.REMAIN_CAPACITY:
+                    this.dataArray.push([]);
+                    break;
+                
+                case DataType.STAT:
+                    this.dataArray.push([]);
+                    this.dataArray.push([]);
+                    this.dataArray.push([]);
+                    this.dataArray.push([]);
+                    break;
+            }
+        } else {
+            for (let i = 0; i < this.dataArray.length; i++) {
+                this.dataArray[i] = [];
+            }
+        }
+        console.log('initApexChartDataWithData!!! - ' + this.dataType);
+        if(data?.length > 0) {
+            for(let item of this.batteryDataArray) {
+                switch (this.dataType) {
+                    case DataType.CELL_VOLTAGE: {
+                        if (item.cell) {
+                            for (let i = 0; i < item.cell.length; i++) {
+                                this.dataArray[i].push([item.date, this.getChartValue(item.cell[i])]);
+                            }
+                        }
+                        break;
+                    }
+                    
+                    case DataType.TEMPERATURE: {
+                        if (item.temperature) {
+                            for (let i = 0; i < item.temperature.length; i++) {
+                                this.dataArray[i].push([item.date, this.getChartTemperatureValue(item.temperature[i])]);
+                            }
+                        }
+                        break;
+                    }
+
+                    case DataType.PACK_CURRENT:
+                        this.dataArray[0].push([item.date, this.getChartValue(item.toltesmerites)]);
+                        break;
+                    
+                    case DataType.REMAIN_CAPACITY:
+                        this.dataArray[0].push([item.date, this.getChartValue(item.toltesszint)]);
+                        break;
+
+                    case DataType.STAT:
+                        let stat = this.getStatValues(item.cell);
+                        this.dataArray[0].push([item.date, this.getChartValue(stat.min)]); // min
+                        this.dataArray[1].push([item.date, this.getChartValue(stat.max)]); // max
+                        this.dataArray[2].push([item.date, this.getChartValue(stat.delta)]); // delta
+                        this.dataArray[3].push([item.date, this.getChartValue(stat.avg)]); // avg
+                        break;
                 }
             }
         }
@@ -595,6 +702,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
         } else {
             return item;
         }
+    }
+
+    private getChartTemperatureValue(item: any) {
+        if (item && typeof item === 'number') {
+            return item / 10;
+        } else {
+            return item;
+        }
+    }
+
+    private getStatValues(cells: number[] | undefined) {
+        if(cells == undefined) {
+            return {
+                min: 0,
+                max: 0,
+                avg: 0,
+                delta: 0
+            };
+        }
+        
+        let stat: Stats = {
+            min: cells[0],
+            max: cells[0],
+            avg: 0,
+            delta: 0
+        };
+
+        for (let cell of cells) {
+            if(stat.min > cell) {
+                stat.min = cell;
+            }
+            if(stat.max < cell) {
+                stat.max = cell;
+            }
+            stat.avg += cell;
+        }
+
+        stat.avg = stat.avg/cells.length;
+        stat.delta = stat.max - stat.min;
+        return stat;
     }
                                 
     public generateDayWiseTimeSeries(baseval: number, count: number, yrange: { min: any; max: any; }) {
@@ -740,6 +887,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     onDataTypeChange(event: any): void {
-
+        localStorage.setItem('dataType', this.dataType);
+        this.router.navigate( ['/']);
     }
 }    

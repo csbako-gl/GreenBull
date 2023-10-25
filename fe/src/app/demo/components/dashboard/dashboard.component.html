@@ -86,8 +86,8 @@
                 <div class="flex align-items-center justify-content-center mb-3">
                     <div echarts [options]="gaugeChartOptions1" class="chart" style="width: 100%;"></div>
                 </div>
-                <span class="text-green-500 font-medium">85 </span>
-                <span class="text-500">responded</span>
+                <!--span class="text-green-500 font-medium">85 </span>
+                <span class="text-500">responded</span-->
             </div>
         </div>
         <div class="col-12 xl:col-6">
@@ -96,17 +96,19 @@
                 <div class="flex align-items-center justify-content-center mb-3">
                     <div echarts [options]="gaugeChartOptions2" class="chart" style="width: 100%;"></div>
                 </div>
-                <span class="text-green-500 font-medium">85 </span>
-                <span class="text-500">responded</span>
+                <!--span class="text-green-500 font-medium">85 </span>
+                <span class="text-500">responded</span-->
             </div>
         </div>
         <div class="col-12">
             <div class="card">
                 <div>
-                    <p-dropdown
+                    <p-dropdown 
                         (onChange)="onDataTypeChange($event)"
                         inputId="dataSelector"
                         [options]="dataTypes"
+                        placeholder="Select"
+                        [(ngModel)]="dataType"
                         placeholder="Select">
                     </p-dropdown>
                     <!-- Range Picker-->
