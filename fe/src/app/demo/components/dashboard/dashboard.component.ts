@@ -218,19 +218,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
                 this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
                 
-                this.zone.run(() => {
+                /*this.zone.run(() => {
                     this.cdr.detectChanges(); // Kényszerítsük ki a Change Detection-öt a NgZone-ban belül
-                });
+                });*/
             }
         });
     }
 
     setChartOptionData() {
         console.dir(this.dataArray);
-        let min = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let minX = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
             : new Date().getTime();
-        let max  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let maxX  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date().getTime()
 
@@ -265,32 +265,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
             });
         }
 
-        this.apexChartOptions1 = { ...this.apexChartOptions1};
+        //this.apexChartOptions1 = { ...this.apexChartOptions1};
+        console.log("WWWWWWWWWW");
+        console.dir(this.apexChartOptions2.series);
 
-        this.apexChartOptions2 = { ...this.apexChartOptions2, ...{
-            series: [
-                { name: "series1", data: this.dataArray[0] },
-            ],
-            chart: {
-                id: "chart1",
-                height: 90,
-                type: "area",
-                brush: {
-                    target: "chart2",
-                    enabled: true
-                },
-                selection: {
-                    enabled: true,
-                    xaxis: {
-                        min: min,
-                        max: max
-                    }
-                }
-            }
-        }}
+        this.apexChartOptions2.series = [];
+        this.apexChartOptions2.series.push({
+            name: "data",
+            data: this.dataArray[0]
+        });
+
+        this.apexChartOptions2.chart.selection.xaxis = {
+            min: minX,
+            max: maxX
+        };
+
+        console.log("WWWWWWWWWW2222222");
+        console.dir(this.apexChartOptions2.series);
+
+        //this.apexChartOptions2.series = { ...this.apexChartOptions2.series};
+        /*this.apexChartOptions2.chart.selection.enabled = true;
+        this.apexChartOptions2 = { ...this.apexChartOptions2};
+        this.apexChartOptions2.chart.selection.xaxis = { ...this.apexChartOptions2.chart.selection.xaxis};
+        this.apexChartOptions2.chart = { ...this.apexChartOptions2.chart};
+        this.apexChartOptions2.xaxis = { ...this.apexChartOptions2.xaxis};*/
+
 
         console.log('Try to refresh');
-        this.cdr.detectChanges();
+        //this.cdr.detectChanges();
         //window.dispatchEvent(new Event('resize'));
     }
 
@@ -513,15 +515,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 size: 0
             },
             xaxis: {
-                type: "datetime"
+                type: "datetime",
+                labels: {
+                    datetimeUTC: false,
+                }
             },
             yaxis: {
                 forceNiceScale: true,
                 tickAmount: 5
             }
         }};
-        this.cdr.detectChanges();
-        window.dispatchEvent(new Event('resize'));
+        //this.cdr.detectChanges();
+        //window.dispatchEvent(new Event('resize'));
     }
 
     initChartOption2() {
@@ -532,9 +537,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date("14 Aug 2017").getTime()
         this.apexChartOptions2 = { ...this.apexChartOptions2, ...{
-            series: [
-                //{ name: "series1", data: this.dataArray[0] },
-            ],
+            series: [],
             chart: {
                 id: "chart1",
                 height: 90,
@@ -549,7 +552,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         min: minX,
                         max: maxX
                     }
-                }
+                },
+                events: {
+                    updated: function(chartContext: any, config: any) {
+                        console.log("updated");
+                        console.dir(chartContext);
+                        console.dir(config);
+                    },
+                    mounted: function(chartContext: any, config: any) {
+                        console.log("mounted");
+                        console.dir(chartContext);
+                        console.dir(config);
+                        console.dir(config.globals.selection);
+                        console.dir(config.config.chart.selection.xaxis);
+                        /*config.globals.selection.min = config.config.chart.selection.xaxis.min;
+                        config.globals.selection.max = config.config.chart.selection.xaxis.max;*/
+
+                        const selectedDataPoints : any[] = [];
+                        chartContext.w.globals.series.forEach((series: any, seriesIndex: number) => {
+                            for (let i = 0; i < series.length; i++) {
+                              selectedDataPoints.push({
+                                seriesIndex: seriesIndex,
+                                dataPointIndex: i
+                              });
+                            }
+                        });
+                        chartContext.w.config.states.active = {
+                            filter: {
+                              type: 'none',
+                              value: 0
+                            }
+                          };
+                        chartContext.w.globals.selectedDataPoints = selectedDataPoints;
+                        //chartContext.setActivePoints(selectedDataPoints);
+                    }
+                },
             },
             colors: ["#008FFB"],
             fill: {
@@ -563,6 +600,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 type: "datetime",
                 tooltip: {
                     enabled: false
+                },
+                labels: {
+                    datetimeUTC: false,
                 }
             },
             yaxis: {
@@ -578,12 +618,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             }
         }};
-        this.cdr.detectChanges();
-        window.dispatchEvent(new Event('resize'));
+        //this.cdr.detectChanges();
+        //window.dispatchEvent(new Event('resize'));
     }
                                 
     public initApexChartData() {
         if(this.dateFrom == null ||this.dateTo == null || this.dateFrom.getTime() == this.dateTo.getTime()) {
+            console.log("initApexChartData 1");
             this.batteryDataService.getBatteryDataLimited(
                 this?.device?.id ?? -1,
                 CHART_LIMIT
@@ -602,15 +643,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             });
         } else {
+            console.log("initApexChartData 2");
             this.batteryDataService.getBatteryDataFromTo(
                 this?.device?.id ?? -1,
                 this.dateFrom,
                 this.dateTo,
                 CHART_LIMIT
             ).subscribe((data : BatteryData[]) => {
+                console.log("initApexChartData 2/2");
                 this.initApexChartDataWithData(data);
             });
         }
+        console.log("initApexChartData 100");
     }
 
     private initApexChartDataWithData(data: BatteryData[]) {
@@ -649,7 +693,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.dataArray[i] = [];
             }
         }
-        console.log('initApexChartDataWithData!!! - ' + this.dataType);
+
         if(data?.length > 0) {
             for(let item of this.batteryDataArray) {
                 switch (this.dataType) {
@@ -689,6 +733,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             }
         }
+
         //this.initChartOption1();
         //this.initChartOption2();
         this.setChartOptionData();
@@ -762,7 +807,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     initGaugeChartOptions() {
         this.gaugeChartOptions1 = this.getDefaultGaugeChartOptions();
         this.gaugeChartOptions2 = this.getDefaultGaugeChartOptions();
-        this.cdr.detectChanges();
+        //this.cdr.detectChanges();
     }
 
     getDefaultGaugeChartOptions() {
