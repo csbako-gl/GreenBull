@@ -1,10 +1,9 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
-import { NgxEchartsModule } from 'ngx-echarts'; // Importáld a ngx-echarts modult
-import { ApexChartModule } from '../apex-chart/apex-chart.modules';
+//import { ApexChartModule } from '../apex-chart/apex-chart.modules';
 import { format } from 'date-fns';
-import * as echarts from 'echarts'; 
+//import * as echarts from 'echarts'; 
 import {
     ChartComponent,
     ApexAxisChartSeries,
@@ -23,11 +22,9 @@ import { BatteryData } from 'src/app/model/battery.data.model';
 import * as ApexCharts from 'apexcharts';
 import { Device } from 'src/app/model/device.model';
 import { DeviceService } from 'src/app/service/deviceservice';
-import { ActivatedRoute, NavigationEnd, NavigationExtras, Router } from '@angular/router';
-import { TooltipOptions } from 'primeng/tooltip/tooltip';
-import { SelectItem } from 'primeng/api';
+import { Router } from '@angular/router';
 import { type } from 'os';
-//import { TooltipOptions } from 'chart.js';
+import { CHART_COLORS } from 'src/app/demo/components/dashboard/dashboard.component.chart.color';
 
 
 export type ChartOptions = {
@@ -68,8 +65,8 @@ export type Stats = {
 
 export class DashboardComponent implements OnInit, OnDestroy {
     
-    gaugeChartOptions1: any = {};
-    gaugeChartOptions2: any = {};
+    gaugeChartOptions1: any;
+    gaugeChartOptions2: any;
 
     subscription!: Subscription;
     
@@ -84,8 +81,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     rangeDates: Date[] = [new Date(), new Date()];
     dateFrom: Date = new Date();
     dateTo: Date = new Date();
-    dataTypes: SelectItem[] = [];
+    dataTypes: any[] = [];
     dataType: string = DataType.CELL_VOLTAGE;
+    apexChart1?: ApexCharts;
+    cellCount: number = 0;
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -109,7 +108,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-
+        console.log("ngOnInit");
         this.batteryDataArray = [];
         this.lastBatteryData = {};
         this.averagevoltage = 0;
@@ -117,10 +116,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.lastUpdateTime = "";
         this.devices = [];
         this.device = {};
-        this.apexChartOptions1 = {};
-        this.apexChartOptions2 = {};
-        this.gaugeChartOptions1= {};
-        this.gaugeChartOptions2 = {};
+        //this.apexChartOptions1 = {};
+        //this.apexChartOptions2 = {};
 
         this.dataTypes = [
             { label: 'Cell voltage', value: DataType.CELL_VOLTAGE },
@@ -139,9 +136,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.initChartOption2();
 
         this.initDates();
+    }
 
+    ngAfterViewInit() {
+        console.log("ngAfterViewInit");
         const deviceId = localStorage.getItem('device') ?? '-1';
         this.initDeviceList(parseInt(deviceId, 10));
+        this.cdr.detectChanges();
+
+        /*if (this.apexChart1) {
+            this.apexChart1?.destroy();
+        }
+        this.apexChart1 = new ApexCharts(document.querySelector("#chart2"), this.apexChartOptions1);
+        this.apexChart1.render();*/
+        //this.apexChart1.resetSeries();
     }
 
     initDates() {
@@ -206,27 +214,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     if(min > voltages[i]) min = voltages[i];
                     if(max < voltages[i]) max = voltages[i];
                 }
-                this.lastBatteryData = {...this.lastBatteryData};
+                
                 this.averagevoltage = (sum/1000) / (this.lastBatteryData.cell ? this.lastBatteryData.cell.length : 1);
                 this.deltaVoltage = (max-min) /1000;
                 if(this.lastBatteryData.date) this.lastUpdateTime = format(this.lastBatteryData.date, 'yyyy-MM-dd HH:mm:ss');
 
                 this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData.temperature ? this.lastBatteryData.temperature[5] : 0;
-                this.gaugeChartOptions1.series[0].data[0].name = 'BMS Hőmérséklet';
-                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.temperature ? this.lastBatteryData.temperature[4] : 0;
-                this.gaugeChartOptions2.series[0].data[0].name = 'Env Szenzor Hőmérséklet'
-                this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
-                this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
-                
-                /*this.zone.run(() => {
-                    this.cdr.detectChanges(); // Kényszerítsük ki a Change Detection-öt a NgZone-ban belül
-                });*/
+                this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData.temperature ? this.lastBatteryData.temperature[4] : 0;
+                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.toltesszint ? this.lastBatteryData.toltesszint : 0;
+
+                // ezt itt nem szabad használni, mert akkor azt hiszi hogy újra akarom inicializálni és szépen warningol, de nagyon
+                //this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
+                //this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
             }
         });
     }
 
     setChartOptionData() {
-        console.dir(this.dataArray);
         let minX = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
             : new Date().getTime();
@@ -265,9 +269,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             });
         }
 
-        //this.apexChartOptions1 = { ...this.apexChartOptions1};
-        console.log("WWWWWWWWWW");
-        console.dir(this.apexChartOptions2.series);
+        this.cellCount = this.dataArray.length;
 
         this.apexChartOptions2.series = [];
         this.apexChartOptions2.series.push({
@@ -280,8 +282,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             max: maxX
         };
 
-        console.log("WWWWWWWWWW2222222");
-        console.dir(this.apexChartOptions2.series);
+        this.apexChartOptions1.chart.selection.xaxis = {
+            min: minX,
+            max: maxX
+        };
 
         //this.apexChartOptions2.series = { ...this.apexChartOptions2.series};
         /*this.apexChartOptions2.chart.selection.enabled = true;
@@ -290,9 +294,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.apexChartOptions2.chart = { ...this.apexChartOptions2.chart};
         this.apexChartOptions2.xaxis = { ...this.apexChartOptions2.xaxis};*/
 
-
-        console.log('Try to refresh');
-        //this.cdr.detectChanges();
         //window.dispatchEvent(new Event('resize'));
     }
 
@@ -303,12 +304,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         let max  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date(Date.now()).getTime()
-        this.apexChartOptions1 = { ...this.apexChartOptions1, ...{
+        this.apexChartOptions1 = { //...this.apexChartOptions1, ...{
             series: [],
             chart: {
                 id: "chart2",
                 type: "line",
                 height: 530,
+                animations: {
+                    enabled : false,
+                    dynamicAnimation: false,
+                },
                 zoom: {
                     enabled: true, // Engedélyezzük a zoom-ot
                     autoScaleYaxis: true, // Automatikus Y-tengely skála beállítás
@@ -327,14 +332,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 panning: {
                     enabled: true
                 },
+                selection: {
+                    enabled: true,
+                    xaxis: {
+                        min: 0,
+                        max: 0
+                    }
+                },
                 events: {
-                    updated: function(chartContext: any, config: any) {
+                    mounted: function(chartContext: any, config: any) {
+                        console.log("mounted");
                         if(config?.config?.tooltip?.x != null) {
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
                         }
+                        console.dir(chartContext?.data);
+                        console.dir(chartContext);
+                        console.dir(config);
+                        console.dir(config.config.series);
+                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
+                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));
+                        if (chartContext?.data.twoDSeriesX) {
+                            console.log("PPPPPPPPPPPPP len:" + chartContext?.data?.twoDSeriesX.length);
+                            const series : any[] = chartContext?.data?.twoDSeriesX;
+                            if(series.length > 0) {
+                                config.config.chart.zoom.zoomedArea.xaxis.min = series[0];
+                                config.config.chart.zoom.zoomedArea.xaxis.max = series[series.length - 1];
+                            }
+                        }
+                        
+                        //config.config.chart.zoom.zoomedArea.xaxis = { ...config.config.chart.zoom.zoomedArea.xaxis};
+                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
+                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));
                     },
                     // custom function (not event)
-                    findIndex : function(date : any, series : any[] ) : number {
+                    /*findIndex : function(date : any, series : any[] ) : number {
                         let left = 0;
                         let right = series.length - 1;
                         let resultIndex = -1;
@@ -384,7 +415,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                               max: minmax.max + delta// Új maximum érték
                             }
                         });
-                    },
+                    },*/
                     /*scrolled: function(chartContext: any, { xaxis }: any) {
                         /*const series : any[] = chartContext?.data?.twoDSeriesX;
                         const seriesY: any[] = chartContext?.data?.twoDSeries;
@@ -435,72 +466,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     }
                 },
             },
-            colors: [
-                    "#f00",
-                    "#ff5900",
-                    "#f90",
-                    "#ffd000",
-                    "#fff700",
-                    "#d4ff00",
-                    "#95ff00",
-                    "#2bff00",
-                    "#00ff73",
-                    "#00ffbf",
-                    "#00eaff",
-                    "#08f",
-                    "#0026ff",
-                    "#7300ff",
-                    "#d400ff",
-                    "#ff00b7",
-                    "#f00",
-                    "#ff5900",
-                    "#f90",
-                    "#ffd000",
-                    "#fff700",
-                    "#d4ff00",
-                    "#95ff00",
-                    "#2bff00",
-                    "#00ff73",
-                    "#00ffbf",
-                    "#00eaff",
-                    "#08f",
-                    "#0026ff",
-                    "#7300ff",
-                    "#d400ff",
-                    "#ff00b7",
-                    "#f00",
-                    "#ff5900",
-                    "#f90",
-                    "#ffd000",
-                    "#fff700",
-                    "#d4ff00",
-                    "#95ff00",
-                    "#2bff00",
-                    "#00ff73",
-                    "#00ffbf",
-                    "#00eaff",
-                    "#08f",
-                    "#0026ff",
-                    "#7300ff",
-                    "#d400ff",
-                    "#ff00b7",
-                    "#f00",
-                    "#ff5900",
-                    "#f90",
-                    "#ffd000",
-                    "#fff700",
-                    "#d4ff00",
-                    "#95ff00",
-                    "#2bff00",
-                    "#00ff73",
-                    "#00ffbf",
-                    "#00eaff",
-                    "#08f",
-                    "#0026ff",
-                    "#7300ff",
-                    "#d400ff",
-                    "#ff00b7"
-                ],
+            colors: CHART_COLORS,
             stroke: {
                 width: 2,   // vonalvastagság
                 curve: "smooth"
@@ -516,17 +482,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
             },
             xaxis: {
                 type: "datetime",
-                labels: {
+                /*labels: {
                     datetimeUTC: false,
-                }
+                }*/
             },
             yaxis: {
                 forceNiceScale: true,
                 tickAmount: 5
             }
-        }};
-        //this.cdr.detectChanges();
-        //window.dispatchEvent(new Event('resize'));
+        };
     }
 
     initChartOption2() {
@@ -536,7 +500,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         let maxX  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date("14 Aug 2017").getTime()
-        this.apexChartOptions2 = { ...this.apexChartOptions2, ...{
+        this.apexChartOptions2 = {// ...this.apexChartOptions2, ...{ this.apexChartOptions2.chart.selection.enabled
             series: [],
             chart: {
                 id: "chart1",
@@ -553,7 +517,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         max: maxX
                     }
                 },
-                events: {
+                /*events: {
                     updated: function(chartContext: any, config: any) {
                         console.log("updated");
                         console.dir(chartContext);
@@ -566,7 +530,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         console.dir(config.globals.selection);
                         console.dir(config.config.chart.selection.xaxis);
                         /*config.globals.selection.min = config.config.chart.selection.xaxis.min;
-                        config.globals.selection.max = config.config.chart.selection.xaxis.max;*/
+                        config.globals.selection.max = config.config.chart.selection.xaxis.max;* /
 
                         const selectedDataPoints : any[] = [];
                         chartContext.w.globals.series.forEach((series: any, seriesIndex: number) => {
@@ -586,7 +550,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         chartContext.w.globals.selectedDataPoints = selectedDataPoints;
                         //chartContext.setActivePoints(selectedDataPoints);
                     }
-                },
+                },*/
             },
             colors: ["#008FFB"],
             fill: {
@@ -601,9 +565,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 tooltip: {
                     enabled: false
                 },
-                labels: {
+                /*labels: {
                     datetimeUTC: false,
-                }
+                }*/
             },
             yaxis: {
                 tickAmount: 5
@@ -617,14 +581,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     }
                 }
             }
-        }};
-        //this.cdr.detectChanges();
-        //window.dispatchEvent(new Event('resize'));
+        };
     }
                                 
     public initApexChartData() {
         if(this.dateFrom == null ||this.dateTo == null || this.dateFrom.getTime() == this.dateTo.getTime()) {
-            console.log("initApexChartData 1");
             this.batteryDataService.getBatteryDataLimited(
                 this?.device?.id ?? -1,
                 CHART_LIMIT
@@ -643,22 +604,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             });
         } else {
-            console.log("initApexChartData 2");
             this.batteryDataService.getBatteryDataFromTo(
                 this?.device?.id ?? -1,
                 this.dateFrom,
                 this.dateTo,
                 CHART_LIMIT
             ).subscribe((data : BatteryData[]) => {
-                console.log("initApexChartData 2/2");
                 this.initApexChartDataWithData(data);
             });
         }
-        console.log("initApexChartData 100");
     }
 
     private initApexChartDataWithData(data: BatteryData[]) {
-        // TODO ide kell még egy újraméretezés:
         if(data?.length > 0) {
             this.batteryDataArray = data;
             this.dataArray = [];
@@ -734,11 +691,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
         }
 
-        //this.initChartOption1();
-        //this.initChartOption2();
         this.setChartOptionData();
-        // this is the MAGIC!!!
-        //this.ugyletek = [...this.ugyletek];
     }
 
     private getChartValue(item: any) {
@@ -806,8 +759,42 @@ export class DashboardComponent implements OnInit, OnDestroy {
     
     initGaugeChartOptions() {
         this.gaugeChartOptions1 = this.getDefaultGaugeChartOptions();
+        this.gaugeChartOptions1.series[0].data[0] = {
+            value: 20,
+            name: 'Environment',
+            title: {
+                offsetCenter: ['40%', '80%']
+              },
+              detail: {
+                offsetCenter: ['40%', '95%']
+              }
+        };
+        this.gaugeChartOptions1.series[0].data.push({
+            value: 60,
+            name: 'BMS',
+            title: {
+                offsetCenter: ['-40%', '80%']
+            },
+            detail: {
+                offsetCenter: ['-40%', '95%']
+            }
+        });
+
         this.gaugeChartOptions2 = this.getDefaultGaugeChartOptions();
-        //this.cdr.detectChanges();
+        this.gaugeChartOptions2.series[0].data[0] = {
+            value: 10,
+            name: 'PACK current',
+            title: {
+                offsetCenter: ['0%', '80%']
+              },
+              detail: {
+                offsetCenter: ['0%', '95%']
+              }
+        };
+        this.gaugeChartOptions2.series[0].min = 0;
+        this.gaugeChartOptions2.series[0].max = 160;
+        this.gaugeChartOptions2.series[0].detail.formatter = "{value} A";
+        this.gaugeChartOptions2.series[0].axisLabel.formatter = "{value} A";
     }
 
     getDefaultGaugeChartOptions() {
@@ -827,9 +814,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         formatter: "{value} °C" // ezzel mondom meg a mértékegység fomázását
                     },
                     data: [{ 
-                        value: 42, 
-                        name: 'Hőmérséklet' 
-                    }],
+                            value: 42, 
+                            name: 'Hőmérséklet'
+                        },
+                    ],
                     axisLine: { // a külső gyűrű tulajdonságai
                         show: true, //látszik-e a külső "gyűrű" mint vonal
                         roundCap: false, // a vonal végeket lekerekítjük vagy ne

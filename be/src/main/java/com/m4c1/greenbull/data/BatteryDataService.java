@@ -170,7 +170,7 @@ public class BatteryDataService {
 
         if (tempCount != 0) {
             data.setTemperature(new Short[tempCount]);
-            // (85-108)  4 bytes first temperatur： 0BAAH， that’s 2986， 25.6℃
+            // (85-108)  4 bytes first temperature： 0BAAH， that’s 2986， 25.6℃
             for (int temp = 0; temp < tempCount; temp++) {
                 dataBytes = Arrays.copyOfRange(receivedData, index + temp * 4, index + (temp + 1) * 4);
                 data.getTemperature()[temp] = (short)(getIntFromAscii4Bytes(dataBytes) - 2730);
