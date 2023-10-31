@@ -25,6 +25,7 @@ import { DeviceService } from 'src/app/service/deviceservice';
 import { Router } from '@angular/router';
 import { type } from 'os';
 import { CHART_COLORS } from 'src/app/demo/components/dashboard/dashboard.component.chart.color';
+import * as echarts from 'echarts/types/dist/echarts';
 
 
 export type ChartOptions = {
@@ -116,8 +117,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.lastUpdateTime = "";
         this.devices = [];
         this.device = {};
-        //this.apexChartOptions1 = {};
-        //this.apexChartOptions2 = {};
 
         this.dataTypes = [
             { label: 'Cell voltage', value: DataType.CELL_VOLTAGE },
@@ -136,6 +135,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.initChartOption2();
 
         this.initDates();
+
+        // TODO ez itt csak egy elkeseredett kisérlet, de sajnos valami nem jó
+        /*let myElement = document.getElementById('mychart');
+        if (myElement !== null) {
+            console.log("myElement");
+            let myChart1 = echarts.init(myElement);
+            myChart1.setOption(this.gaugeChartOptions1, true);
+        }*/
     }
 
     ngAfterViewInit() {
@@ -147,7 +154,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         /*if (this.apexChart1) {
             this.apexChart1?.destroy();
         }
-        this.apexChart1 = new ApexCharts(document.querySelector("#chart2"), this.apexChartOptions1);
+        this.apexChart1 = new ApexCharts(document.querySelector("#chart1"), this.apexChartOptions1);
         this.apexChart1.render();*/
         //this.apexChart1.resetSeries();
     }
@@ -219,9 +226,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.deltaVoltage = (max-min) /1000;
                 if(this.lastBatteryData.date) this.lastUpdateTime = format(this.lastBatteryData.date, 'yyyy-MM-dd HH:mm:ss');
 
-                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData.temperature ? this.lastBatteryData.temperature[5] : 0;
-                this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData.temperature ? this.lastBatteryData.temperature[4] : 0;
-                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData.toltesszint ? this.lastBatteryData.toltesszint : 0;
+                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[5] : 0;
+                this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[4] : 0;
+                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData?.toltesszint ? this.lastBatteryData.toltesszint / 100 : 0;
+
+                // TODO lehet hogy ez nem kell ide, de ezzel sem és enélkül sem működik
+                this.gaugeChartOptions2.series[0] = {...this.gaugeChartOptions2.series[0]};
+                this.gaugeChartOptions1.series[0] = {...this.gaugeChartOptions1.series[0]};
+                this.cdr.detectChanges();
+
+                console.dir(this.lastBatteryData);
+                console.log('Amper: ' + this.gaugeChartOptions2.series[0].data[0].value);
+
+                if (this.lastBatteryData.cell) {
+                    this.cellCount =  this.lastBatteryData.cell?.length;
+                }                
 
                 // ezt itt nem szabad használni, mert akkor azt hiszi hogy újra akarom inicializálni és szépen warningol, de nagyon
                 //this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
@@ -269,8 +288,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
             });
         }
 
-        this.cellCount = this.dataArray.length;
-
         this.apexChartOptions2.series = [];
         this.apexChartOptions2.series.push({
             name: "data",
@@ -307,7 +324,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.apexChartOptions1 = { //...this.apexChartOptions1, ...{
             series: [],
             chart: {
-                id: "chart2",
+                id: "chart1",
                 type: "line",
                 height: 530,
                 animations: {
@@ -345,14 +362,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         if(config?.config?.tooltip?.x != null) {
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
                         }
-                        console.dir(chartContext?.data);
+                        /*console.dir(chartContext?.data);
                         console.dir(chartContext);
                         console.dir(config);
                         console.dir(config.config.series);
                         console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
-                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));
+                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));*/
                         if (chartContext?.data.twoDSeriesX) {
-                            console.log("PPPPPPPPPPPPP len:" + chartContext?.data?.twoDSeriesX.length);
+                            //console.log("PPPPPPPPPPPPP len:" + chartContext?.data?.twoDSeriesX.length);
                             const series : any[] = chartContext?.data?.twoDSeriesX;
                             if(series.length > 0) {
                                 config.config.chart.zoom.zoomedArea.xaxis.min = series[0];
@@ -361,8 +378,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         }
                         
                         //config.config.chart.zoom.zoomedArea.xaxis = { ...config.config.chart.zoom.zoomedArea.xaxis};
-                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
-                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));
+                        //console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
+                        //console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));
                     },
                     // custom function (not event)
                     /*findIndex : function(date : any, series : any[] ) : number {
@@ -482,9 +499,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
             },
             xaxis: {
                 type: "datetime",
-                /*labels: {
+                labels: {
                     datetimeUTC: false,
-                }*/
+                }
             },
             yaxis: {
                 forceNiceScale: true,
@@ -503,11 +520,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.apexChartOptions2 = {// ...this.apexChartOptions2, ...{ this.apexChartOptions2.chart.selection.enabled
             series: [],
             chart: {
-                id: "chart1",
+                id: "chart2",
                 height: 90,
                 type: "area",
                 brush: {
-                    target: "chart2",
+                    target: "chart1",
                     enabled: true
                 },
                 selection: {
@@ -565,9 +582,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 tooltip: {
                     enabled: false
                 },
-                /*labels: {
+                labels: {
                     datetimeUTC: false,
-                }*/
+                }
             },
             yaxis: {
                 tickAmount: 5
@@ -677,7 +694,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         break;
                     
                     case DataType.REMAIN_CAPACITY:
-                        this.dataArray[0].push([item.date, this.getChartValue(item.toltesszint)]);
+                        this.dataArray[0].push([item.date, this.getChartValue(item.toltesszint)/100]);
                         break;
 
                     case DataType.STAT:
@@ -760,7 +777,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     initGaugeChartOptions() {
         this.gaugeChartOptions1 = this.getDefaultGaugeChartOptions();
         this.gaugeChartOptions1.series[0].data[0] = {
-            value: 20,
+            value: 10.5,
             name: 'Environment',
             title: {
                 offsetCenter: ['40%', '80%']
@@ -770,7 +787,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               }
         };
         this.gaugeChartOptions1.series[0].data.push({
-            value: 60,
+            value: 10.5,
             name: 'BMS',
             title: {
                 offsetCenter: ['-40%', '80%']
@@ -780,9 +797,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
         });
 
+        console.log("gaugeChartOptions2 init");
         this.gaugeChartOptions2 = this.getDefaultGaugeChartOptions();
         this.gaugeChartOptions2.series[0].data[0] = {
-            value: 10,
+            value: 0,
             name: 'PACK current',
             title: {
                 offsetCenter: ['0%', '80%']
@@ -795,6 +813,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.gaugeChartOptions2.series[0].max = 160;
         this.gaugeChartOptions2.series[0].detail.formatter = "{value} A";
         this.gaugeChartOptions2.series[0].axisLabel.formatter = "{value} A";
+        
+        console.log("gaugeChartOptions2 init done");
     }
 
     getDefaultGaugeChartOptions() {
