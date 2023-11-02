@@ -42,32 +42,6 @@ public class BatteryData {
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> other;
 
-    // TODO kitörölni ezeket
-    private Integer c1;
-    private Integer c2;
-    private Integer c3;
-    private Integer c4;
-    private Integer c5;
-    private Integer c6;
-    private Integer c7;
-    private Integer c8;
-    private Integer c9;
-    private Integer c10;
-    private Integer c11;
-    private Integer c12;
-    private Integer c13;
-    private Integer c14;
-    private Integer c15;
-    private Integer c16;
-    private Integer bmshomerseklet;
-    private Integer szenzorho1;
-    private Integer szenzorho2;
-    private Integer szenzorok;
-    private Integer hibakod;
-    private Integer statusz;
-    private Integer data1;
-    private Integer data2;
-
     private void init() {
         pakfeszultseg = 0;
         toltesmerites = 0;

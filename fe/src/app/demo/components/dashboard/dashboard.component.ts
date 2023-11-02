@@ -226,8 +226,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.deltaVoltage = (max-min) /1000;
                 if(this.lastBatteryData.date) this.lastUpdateTime = format(this.lastBatteryData.date, 'yyyy-MM-dd HH:mm:ss');
 
-                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[5] : 0;
-                this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[4] : 0;
+                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[5] / 10 : 0;
+                this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[4] / 10 : 0;
                 this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData?.toltesszint ? this.lastBatteryData.toltesszint / 100 : 0;
 
                 // TODO lehet hogy ez nem kell ide, de ezzel sem és enélkül sem működik
