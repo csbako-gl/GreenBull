@@ -203,8 +203,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.batteryDataService.getLastBatteryData(this?.device?.id ?? -1).subscribe((resp : ApiResponse) => {
             if(resp?.data != null) {
                 this.lastBatteryData = resp.data;
-                if(this.lastBatteryData.pakfeszultseg) {
-                    this.lastBatteryData.pakfeszultseg /= 100;
+                if(this.lastBatteryData.packTotal) {
+                    this.lastBatteryData.packTotal = parseFloat((this.lastBatteryData.packTotal /= 1000).toFixed(2));
                 }
                 const voltages: number[] = [];
                 if(this.lastBatteryData.cell && this.lastBatteryData.cell.length > 0) {
@@ -222,13 +222,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     if(max < voltages[i]) max = voltages[i];
                 }
                 
-                this.averagevoltage = (sum/1000) / (this.lastBatteryData.cell ? this.lastBatteryData.cell.length : 1);
-                this.deltaVoltage = (max-min) /1000;
+                this.averagevoltage = parseFloat(((sum/1000) / (this.lastBatteryData.cell ? this.lastBatteryData.cell.length : 1)).toFixed(3));
+                this.deltaVoltage = (max-min);
                 if(this.lastBatteryData.date) this.lastUpdateTime = format(this.lastBatteryData.date, 'yyyy-MM-dd HH:mm:ss');
 
                 this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[5] / 10 : 0;
                 this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[4] / 10 : 0;
-                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData?.toltesszint ? this.lastBatteryData.toltesszint / 100 : 0;
+                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData?.packCurrent ? this.lastBatteryData.packCurrent / 100 : 0;
 
                 // TODO lehet hogy ez nem kell ide, de ezzel sem és enélkül sem működik
                 this.gaugeChartOptions2.series[0] = {...this.gaugeChartOptions2.series[0]};
@@ -690,11 +690,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     }
 
                     case DataType.PACK_CURRENT:
-                        this.dataArray[0].push([item.date, this.getChartValue(item.toltesmerites)]);
+                        this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packCurrent)]);
                         break;
                     
                     case DataType.REMAIN_CAPACITY:
-                        this.dataArray[0].push([item.date, this.getChartValue(item.toltesszint)/100]);
+                        this.dataArray[0].push([item.date, this.getChartValue(item.packRemain)/100]);
                         break;
 
                     case DataType.STAT:
@@ -714,6 +714,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private getChartValue(item: any) {
         if (item && typeof item === 'number') {
             return item / 1000;
+        } else {
+            return item;
+        }
+    }
+
+    private getPackCurrentValue(item: any) {
+        if (item && typeof item === 'number') {
+            return item / 100;
         } else {
             return item;
         }
@@ -809,12 +817,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 offsetCenter: ['0%', '95%']
               }
         };
-        this.gaugeChartOptions2.series[0].min = 0;
-        this.gaugeChartOptions2.series[0].max = 160;
+        this.gaugeChartOptions2.series[0].min = -250;
+        this.gaugeChartOptions2.series[0].max = 250;
+        this.gaugeChartOptions2.series[0].splitNumber = 20;
         this.gaugeChartOptions2.series[0].detail.formatter = "{value} A";
         this.gaugeChartOptions2.series[0].axisLabel.formatter = "{value} A";
-        
-        console.log("gaugeChartOptions2 init done");
+        let colors: any [] = []; 
+        let percent = 0;
+        for(let i = this.gaugeChartOptions2.series[0].axisLine.lineStyle.color.length-1; i >= 0; i--) {
+            colors.push([1-this.gaugeChartOptions2.series[0].axisLine.lineStyle.color[i][0], this.gaugeChartOptions2.series[0].axisLine.lineStyle.color[i][1]]);
+        }
+        for(let i = 0; i < this.gaugeChartOptions2.series[0].axisLine.lineStyle.color.length; i++) {
+            colors.push([this.gaugeChartOptions2.series[0].axisLine.lineStyle.color[i][0], this.gaugeChartOptions2.series[0].axisLine.lineStyle.color[i][1]]);
+        }
+        this.gaugeChartOptions2.series[0].axisLine.lineStyle.color;
+        this.gaugeChartOptions2.series[0].axisLine.lineStyle.color = colors;
     }
 
     getDefaultGaugeChartOptions() {

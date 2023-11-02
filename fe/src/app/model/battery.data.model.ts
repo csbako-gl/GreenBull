@@ -4,9 +4,9 @@ export interface BatteryData {
     date?: Date;
     cell?: number[];
     temperature?: number[];
-    pakfeszultseg?: number;
-    toltesmerites?: number;
-    toltesszint?: number;
-    ciklusszam?: number;
+    packTotal?: number;
+    packCurrent?: number;
+    packRemain?: number;
+    cycleTimes?: number;
     other?: { [key: string]: any };
 }
