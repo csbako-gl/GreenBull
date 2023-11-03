@@ -34,19 +34,19 @@ public class BatteryData {
     private Integer[] cell;
     @Column(columnDefinition = "SMALLINT[]")
     private Short[] temperature;
-    private Integer pakfeszultseg;
-    private Integer toltesmerites;
-    private Integer toltesszint;
-    private Integer ciklusszam;
+    private Integer packTotal;
+    private Integer packCurrent;
+    private Integer packRemain;
+    private Integer cycleTimes;
     @Type(JsonBinaryType.class)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> other;
 
     private void init() {
-        pakfeszultseg = 0;
-        toltesmerites = 0;
-        toltesszint = 0;
-        ciklusszam = 0;
+        packTotal = 0;
+        packCurrent = 0;
+        packRemain = 0;
+        cycleTimes = 0;
     }
 
     public BatteryData(List<BatteryData> others) {
@@ -76,10 +76,10 @@ public class BatteryData {
                 }
             }
 
-            this.pakfeszultseg += Optional.ofNullable(otherData.pakfeszultseg).orElse(0);
-            this.toltesmerites += Optional.ofNullable(otherData.toltesmerites).orElse(0);
-            this.toltesszint += Optional.ofNullable(otherData.toltesszint).orElse(0);
-            this.ciklusszam += Optional.ofNullable(otherData.ciklusszam).orElse(0);
+            this.packTotal += Optional.ofNullable(otherData.packTotal).orElse(0);
+            this.packCurrent += Optional.ofNullable(otherData.packCurrent).orElse(0);
+            this.packRemain += Optional.ofNullable(otherData.packRemain).orElse(0);
+            this.cycleTimes += Optional.ofNullable(otherData.cycleTimes).orElse(0);
         }
 
         for (int i = 0; i < this.cell.length; i++) {
@@ -92,9 +92,9 @@ public class BatteryData {
         }
 
         this.date = new Date(timestamp/others.size());
-        this.pakfeszultseg /= others.size();
-        this.toltesmerites /= others.size();
-        this.toltesszint /= others.size();
-        this.ciklusszam /= others.size();
+        this.packTotal /= others.size();
+        this.packCurrent /= others.size();
+        this.packRemain /= others.size();
+        this.cycleTimes /= others.size();
     }
 }

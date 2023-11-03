@@ -817,8 +817,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 offsetCenter: ['0%', '95%']
               }
         };
-        this.gaugeChartOptions2.series[0].min = -250;
-        this.gaugeChartOptions2.series[0].max = 250;
+        this.gaugeChartOptions2.series[0].min = -50;
+        this.gaugeChartOptions2.series[0].max = 50;
         this.gaugeChartOptions2.series[0].splitNumber = 20;
         this.gaugeChartOptions2.series[0].detail.formatter = "{value} A";
         this.gaugeChartOptions2.series[0].axisLabel.formatter = "{value} A";

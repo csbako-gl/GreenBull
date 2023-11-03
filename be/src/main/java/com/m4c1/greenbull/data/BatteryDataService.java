@@ -105,17 +105,17 @@ public class BatteryDataService {
 
         // (109-112) PACK current， 0000H， unit10mA， range： -327.68A-+327.67A
         dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
-        data.setToltesmerites(getIntFromAscii4Bytes(dataBytes));
+        data.setPackCurrent(getIntFromAscii4Bytes(dataBytes));
         index += 4;
 
         // (113-116) PACK total voltage， CF94H that’s 53.140V
         dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
-        data.setPakfeszultseg(getIntFromAscii4Bytes(dataBytes));
+        data.setPackTotal(getIntFromAscii4Bytes(dataBytes));
         index += 4;
 
         // (117-120) PACK remain capacity， 06D6H that’s 17.50AH
         dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
-        data.setToltesszint(getIntFromAscii4Bytes(dataBytes));
+        data.setPackRemain(getIntFromAscii4Bytes(dataBytes));
         index += 4;
 
         // (121-122) user define number P， 03H
@@ -130,7 +130,7 @@ public class BatteryDataService {
 
             // (127-130) cycle times
             dataBytes = Arrays.copyOfRange(receivedData, index, index + 4);
-            data.setCiklusszam(getIntFromAscii4Bytes(dataBytes));
+            data.setCycleTimes(getIntFromAscii4Bytes(dataBytes));
             index += 4;
 
             // (131-133) PACK design capacity， 1388H that’s 50.00AH

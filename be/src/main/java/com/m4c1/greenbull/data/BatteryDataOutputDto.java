@@ -1,6 +1,5 @@
 package com.m4c1.greenbull.data;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,10 +36,10 @@ public class BatteryDataOutputDto {
         cell = Arrays.stream(data.getCell()).toList();
         temperature = Arrays.asList(data.getTemperature());
 
-        packTotal = data.getPakfeszultseg();
-        packCurrent = ushortToShort(data.getToltesmerites());
-        packRemain = data.getToltesszint();
-        cycleTimes = data.getCiklusszam();
+        packTotal = data.getPackTotal();
+        packCurrent = ushortToShort(data.getPackCurrent());
+        packRemain = data.getPackRemain();
+        cycleTimes = data.getCycleTimes();
         other = data.getOther();
     }
 }
