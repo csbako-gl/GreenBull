@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeviceDto {
+    @JsonProperty("id")
     private Long id;
     @JsonProperty("type_id")
     private long typeId;

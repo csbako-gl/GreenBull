@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, NgZone, AfterViewInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 //import { ApexChartModule } from '../apex-chart/apex-chart.modules';
@@ -23,7 +23,7 @@ import * as ApexCharts from 'apexcharts';
 import { Device } from 'src/app/model/device.model';
 import { DeviceService } from 'src/app/service/deviceservice';
 import { Router } from '@angular/router';
-import { type } from 'os';
+//import { type } from 'os';
 import { CHART_COLORS } from 'src/app/demo/components/dashboard/dashboard.component.chart.color';
 import * as echarts from 'echarts/types/dist/echarts';
 
@@ -64,7 +64,7 @@ export type Stats = {
     templateUrl: './dashboard.component.html',
 })
 
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     
     gaugeChartOptions1: any;
     gaugeChartOptions2: any;
@@ -103,9 +103,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
 
         // This is needed by this.router.navigate( ['/']); without this ngOnInit not runs on rerouting to this page
-        this.router.routeReuseStrategy.shouldReuseRoute = function(){
+        /*this.router.routeReuseStrategy.shouldReuseRoute = function(){
             return false;
-        }
+        }*/
     }
 
     ngOnInit() {
@@ -131,9 +131,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.dataArray.push([]);
         }
 
+        console.log("initChartOption1");
         this.initChartOption1();
+        console.log("initChartOption2");
         this.initChartOption2();
 
+        console.log("initDates");
         this.initDates();
 
         // TODO ez itt csak egy elkeseredett kisérlet, de sajnos valami nem jó
@@ -147,16 +150,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     ngAfterViewInit() {
         console.log("ngAfterViewInit");
+        console.count("ngAfterViewInit");
         const deviceId = localStorage.getItem('device') ?? '-1';
+        console.log("ngAfterViewInit initDeviceList");
         this.initDeviceList(parseInt(deviceId, 10));
+        console.log("ngAfterViewInit changedection");
         this.cdr.detectChanges();
 
-        /*if (this.apexChart1) {
+
+        if (this.apexChart1) {
             this.apexChart1?.destroy();
         }
         this.apexChart1 = new ApexCharts(document.querySelector("#chart1"), this.apexChartOptions1);
-        this.apexChart1.render();*/
+        this.apexChart1.render();
         //this.apexChart1.resetSeries();
+
+        console.log("ngAfterViewInit end");
     }
 
     initDates() {
@@ -180,11 +189,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     initDeviceList(id: number) {
         this.deviceService.getDevicesByUser().subscribe((resp : Device[]) => {
+            console.log("resp:", resp);
             this.devices = resp;
+            console.log("devices:", this.devices);
+            /*this.deviceService.getDevicesByUser().subscribe((resp : Device[]) => {
+                console.log("resp internal:", resp);
+                this.devices = resp;
+            });*/
             let found: boolean = false;
             for (let device of this.devices) {
                 if (device.id == id) {
                     this.device = device;
+                    console.log("Devices: Heureka!!!");
                     found = true;
                     break;
                 }
@@ -233,7 +249,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 // TODO lehet hogy ez nem kell ide, de ezzel sem és enélkül sem működik
                 this.gaugeChartOptions2.series[0] = {...this.gaugeChartOptions2.series[0]};
                 this.gaugeChartOptions1.series[0] = {...this.gaugeChartOptions1.series[0]};
-                this.cdr.detectChanges();
+                //TODO this.cdr.detectChanges();
 
                 console.dir(this.lastBatteryData);
                 console.log('Amper: ' + this.gaugeChartOptions2.series[0].data[0].value);
@@ -359,23 +375,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 events: {
                     mounted: function(chartContext: any, config: any) {
                         console.log("mounted");
-                        if(config?.config?.tooltip?.x != null) {
+                        /*if(config?.config?.tooltip?.x != null) {
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
-                        }
+                        }*/
                         /*console.dir(chartContext?.data);
                         console.dir(chartContext);
                         console.dir(config);
                         console.dir(config.config.series);
                         console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
                         console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));*/
-                        if (chartContext?.data.twoDSeriesX) {
+                        /*if (chartContext?.data.twoDSeriesX) {
                             //console.log("PPPPPPPPPPPPP len:" + chartContext?.data?.twoDSeriesX.length);
                             const series : any[] = chartContext?.data?.twoDSeriesX;
                             if(series.length > 0) {
                                 config.config.chart.zoom.zoomedArea.xaxis.min = series[0];
                                 config.config.chart.zoom.zoomedArea.xaxis.max = series[series.length - 1];
                             }
-                        }
+                        }*/
                         
                         //config.config.chart.zoom.zoomedArea.xaxis = { ...config.config.chart.zoom.zoomedArea.xaxis};
                         //console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
@@ -961,3 +977,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.router.navigate( ['/']);
     }
 }    
+
+function sleep(milliseconds: number) {
+    const start = new Date().getTime();
+    while (new Date().getTime() - start < milliseconds) {
+        // Blokkolja a futást
+    }
+}

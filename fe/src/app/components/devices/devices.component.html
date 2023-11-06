@@ -101,7 +101,7 @@
                     <label for="description">Description</label>
                     <textarea id="description" pInputTextarea [(ngModel)]="device.description" required rows="3" cols="20"></textarea>
                 </div>
-                <div class="field">
+                <!--div class="field">
                     <label for="status">Inventory Status</label>
                     <p-dropdown [(ngModel)]="device.status" inputId="inventoryStatus" optionValue="label" [options]="statuses" placeholder="Select">
                         <ng-template pTemplate="selectedItem">
@@ -111,7 +111,7 @@
                             <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
                         </ng-template>
                     </p-dropdown>
-                </div>
+                </div-->
             </ng-template>
 
             <ng-template pTemplate="footer">

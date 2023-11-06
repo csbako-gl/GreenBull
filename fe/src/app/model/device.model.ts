@@ -6,7 +6,6 @@ export interface Device {
     manufacture?: string;
     description?: string;
     bms_id?: string;
-    status?: string;
     other_data?: { [key: string]: any };
 }
 

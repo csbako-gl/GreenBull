@@ -2,8 +2,10 @@
         <div class="col-12">
             <div class="card mb-0">
                 <div class="field">
-                    <label for="type">Device </label>
+                    <span>Device:</span>
                     <p-dropdown 
+                        id="devsel"
+                        name="devsel"
                         [(ngModel)]="device.id"
                         (onChange)="onDeviceChange($event)"
                         inputId="deviceSelector"
@@ -115,7 +117,7 @@
                     <!-- Range Picker-->
                     <div class="row">
                         <div class="col-6 col-md-3 col-lg-3 mb-4" [hidden]="true">
-                            <label for="calendarInput">Date selector </label>
+                            <span>Date selector</span>
                             <p-calendar 
                                 id="calendarInput" 
                                 [(ngModel)]="rangeDates" 
@@ -128,9 +130,9 @@
                             </p-calendar>
                         </div>
                         <div class="col-3 col-md-3 col-lg-1 mb-4">
-                            <label for="starttime" class="form-label">Time from  </label>
+                            <span>Time from</span>
                             <p-calendar 
-                                id="calendarInput" 
+                                id="starttime" 
                                 [(ngModel)]="dateFrom" 
                                 [showTime]="true" 
                                 [showSeconds]="true"
@@ -140,9 +142,9 @@
                             </p-calendar>
                         </div>
                         <div class="col-3 col-md-3 col-lg-1 mb-4">
-                            <label for="endtime" class="to-label">Time to  </label>
+                            <span>Time to</span>
                             <p-calendar 
-                                id="calendarInput" 
+                                id="endtime" 
                                 [(ngModel)]="dateTo" 
                                 [showTime]="true" 
                                 [showSeconds]="true"
