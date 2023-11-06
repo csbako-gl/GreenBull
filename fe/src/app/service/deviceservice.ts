@@ -18,25 +18,13 @@ export class DeviceService {
     getDevicesByUser() : Observable<Device[]> {
         return this.apiService.get('/device/by_user')
         .pipe(
-            tap((a: any) => console.dir(a) ),
-            tap(() => console.log('enable MMMM response:')),
-            tap((a :any) => console.log("MMMMM", a)),
-            tap((resp: ApiResponse) => {
-                console.log("ApiResponse:", resp);
-                if (resp.error) {
-                    throw new Error(resp.error); // Szinkron hiba dobása
-                }
-            }),
             map((resp: ApiResponse) => {
-                console.log("/device/by_user/resp data", resp.data);
                 const devices = resp.data as Device[];
                 console.log("/device/by_user", devices);
                 return devices;
             }),
-
             catchError(error => {
                 console.error('Error while processing devices:', error);
-                // Itt kezeld a hibát vagy dobjon egy új hibát az Observable láncban
                 return throwError('Hiba történt a készülékek feldolgozása közben.', error);
             })
         );

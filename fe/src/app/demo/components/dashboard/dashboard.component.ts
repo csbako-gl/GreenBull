@@ -50,7 +50,8 @@ export enum DataType {
     TEMPERATURE = 'temperature',
     REMAIN_CAPACITY = 'remaincapacity',
     PACK_CURRENT = 'packcurrent',
-    STAT = 'stat'    
+    STAT = 'stat',
+    DELTA = 'delta'
 };
 
 export type Stats = {
@@ -86,6 +87,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     dataType: string = DataType.CELL_VOLTAGE;
     apexChart1?: ApexCharts;
     cellCount: number = 0;
+    initialized : boolean = false;
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -123,7 +125,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             { label: 'Temperature', value: DataType.TEMPERATURE },
             { label: 'Remain capacity', value: DataType.REMAIN_CAPACITY /*'toltesszint'*/ }, //töltöttség
             { label: 'PACK current', value: DataType.PACK_CURRENT }, // 'toltesmerites'
-            { label: 'Stat Values', value: DataType.STAT } // cella átlag, minimum, maximum, delta
+            { label: 'Stat Values', value: DataType.STAT }, // cella átlag, minimum, maximum, delta
+            { label: 'Max Delta voltage', value: DataType.DELTA }
         ];
 
         this.dataArray = [];
@@ -150,21 +153,19 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
     ngAfterViewInit() {
         console.log("ngAfterViewInit");
-        console.count("ngAfterViewInit");
         const deviceId = localStorage.getItem('device') ?? '-1';
-        console.log("ngAfterViewInit initDeviceList");
         this.initDeviceList(parseInt(deviceId, 10));
-        console.log("ngAfterViewInit changedection");
         this.cdr.detectChanges();
 
 
-        if (this.apexChart1) {
+        /*if (this.apexChart1) {
             this.apexChart1?.destroy();
         }
         this.apexChart1 = new ApexCharts(document.querySelector("#chart1"), this.apexChartOptions1);
-        this.apexChart1.render();
+        this.apexChart1.render();*/
         //this.apexChart1.resetSeries();
 
+        this.initialized = true;
         console.log("ngAfterViewInit end");
     }
 
@@ -189,18 +190,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
     initDeviceList(id: number) {
         this.deviceService.getDevicesByUser().subscribe((resp : Device[]) => {
-            console.log("resp:", resp);
             this.devices = resp;
-            console.log("devices:", this.devices);
-            /*this.deviceService.getDevicesByUser().subscribe((resp : Device[]) => {
-                console.log("resp internal:", resp);
-                this.devices = resp;
-            });*/
             let found: boolean = false;
             for (let device of this.devices) {
-                if (device.id == id) {
-                    this.device = device;
-                    console.log("Devices: Heureka!!!");
+                if (device.id === id) {
+                    this.device = {...device};
                     found = true;
                     break;
                 }
@@ -289,12 +283,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 case DataType.PACK_CURRENT:
                     name = `pack current`;
                     break;
+                case DataType.DELTA: 
+                    name = `delta`; 
+                    break;
                 case DataType.STAT:
                     switch (i) {
                         case 0: name = `min`; break;
                         case 1: name = `max`; break;
-                        case 2: name = `delta`; break;
-                        case 3: name = `avg`; break;
+                        case 2: name = `avg`; break;
                     }
                     break;
             }
@@ -375,9 +371,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 events: {
                     mounted: function(chartContext: any, config: any) {
                         console.log("mounted");
-                        /*if(config?.config?.tooltip?.x != null) {
+                        if(config?.config?.tooltip?.x != null) {
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
-                        }*/
+                        }
                         /*console.dir(chartContext?.data);
                         console.dir(chartContext);
                         console.dir(config);
@@ -668,11 +664,11 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
                 case DataType.PACK_CURRENT:
                 case DataType.REMAIN_CAPACITY:
+                case DataType.DELTA:
                     this.dataArray.push([]);
                     break;
                 
                 case DataType.STAT:
-                    this.dataArray.push([]);
                     this.dataArray.push([]);
                     this.dataArray.push([]);
                     this.dataArray.push([]);
@@ -706,19 +702,23 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                     }
 
                     case DataType.PACK_CURRENT:
-                        this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packCurrent)]);
+                        this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packCurrent).toFixed(2)]);
                         break;
                     
                     case DataType.REMAIN_CAPACITY:
-                        this.dataArray[0].push([item.date, this.getChartValue(item.packRemain)/100]);
+                        this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packRemain).toFixed(2)]);
+                        break;
+
+                    case DataType.DELTA:
+                        let statDelta = this.getStatValues(item.cell);
+                        this.dataArray[0].push([item.date, this.getChartValue(statDelta.delta)]); // delta
                         break;
 
                     case DataType.STAT:
                         let stat = this.getStatValues(item.cell);
                         this.dataArray[0].push([item.date, this.getChartValue(stat.min)]); // min
                         this.dataArray[1].push([item.date, this.getChartValue(stat.max)]); // max
-                        this.dataArray[2].push([item.date, this.getChartValue(stat.delta)]); // delta
-                        this.dataArray[3].push([item.date, this.getChartValue(stat.avg)]); // avg
+                        this.dataArray[2].push([item.date, this.getChartValue(stat.avg)]); // avg
                         break;
                 }
             }
@@ -954,27 +954,46 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     onDeviceChange(event: any): void {
+        if(this.initialized == false || event?.originalEvent == undefined) {
+            console.log("onDeviceChange: not initialized!");
+            return;
+        }
         for(var device of this.devices) {
             if (device.id === event.value) {
+                console.log("selected device: ", device.id);
                 localStorage.setItem('device', device.id == null ? '' : device.id?.toString());
                 this.setDefaultDate();
-                this.router.navigate( ['/']);
+                this.device = {...device};
+                this.refreshDashboard();
                 // mindent is újra betölt reloadol!!! JOLY JOKER!!! 
-                //location.reload();
+                location.reload();
                 break;
             }
         }
     }
 
-    onGetDataButton(event: any): void {
-        localStorage.setItem('dateFrom', this.dateFrom.getTime().toString());
-        localStorage.setItem('dateTo', this.dateTo.getTime().toString());
+    refreshDashboard() {
+        if(this.initialized == false) {
+            return;            
+        }
         this.router.navigate( ['/']);
     }
 
+    onGetDataButton(event: any): void {
+        localStorage.setItem('dateFrom', this.dateFrom.getTime().toString());
+        localStorage.setItem('dateTo', this.dateTo.getTime().toString());
+        this.refreshDashboard();
+    }
+    
     onDataTypeChange(event: any): void {
+        if(this.initialized == false || event?.originalEvent == undefined) {
+            console.log("onDeviceChange: not initialized!");
+            return;
+        }
         localStorage.setItem('dataType', this.dataType);
-        this.router.navigate( ['/']);
+        //this.refreshDashboard();
+        // mindent is újra betölt reloadol!!! JOLY JOKER!!! 
+        location.reload();
     }
 }    
 
