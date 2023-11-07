@@ -317,6 +317,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         };
 
         this.apexChartOptions1.chart = JSON.parse(JSON.stringify(this.apexChartOptions1.chart));
+        //this.apexChartOptions1.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
+        //this.apexChartOptions1.tooltip.x = JSON.parse(JSON.stringify(this.apexChartOptions1.tooltip.x));
         this.apexChartOptions2.chart = JSON.parse(JSON.stringify(this.apexChartOptions2.chart));
 
         /* TODO ezzel a felső jelenik meg
@@ -378,20 +380,23 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                         max: 0
                     }
                 },
-                events: {
+                /*events: {
                     mounted: function(chartContext: any, config: any) {
-                        console.log("mounted");
+                        console.log("mounted", chartContext, config);
                         if(config?.config?.tooltip?.x != null) {
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
+                            config.config.tooltip.enabled = false;
+                            config.config.tooltip = { ...config.config.tooltip};
                         }
                     },
-                }
+                }*/
             },
             tooltip: {
                 x: {
                     format: 'yyyy-MM-dd HH:mm:ss', // A dátumformátumot itt kell helyesen megadni
                     show: true,
                     formatter: function(timestamp: string | number | Date) {
+                        console.log("OOOOOOOOOOOOOOOOOOOOO");
                         return new Date(timestamp).toDateString();
                     }
                 },
@@ -827,7 +832,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     onDeviceChange(event: any): void {
         if(this.initialized == false || event?.originalEvent == undefined) {
             console.log("onDeviceChange: not initialized!");
-            console.trace();
+            //console.trace();
             return;
         }
         for(var device of this.devices) {
