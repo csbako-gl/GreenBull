@@ -20,7 +20,6 @@ export class DeviceService {
         .pipe(
             map((resp: ApiResponse) => {
                 const devices = resp.data as Device[];
-                console.log("/device/by_user", devices);
                 return devices;
             }),
             catchError(error => {

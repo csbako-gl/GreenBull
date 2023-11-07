@@ -337,10 +337,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     initChartOption1() {
-        let min = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let min : number = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
             : new Date(Date.now()-24*60*60*1000).getTime();
-        let max  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let max : number = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date(Date.now()).getTime()
         this.apexChartOptions1 = { //...this.apexChartOptions1, ...{
@@ -389,7 +389,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             },
             tooltip: {
                 x: {
-                    format: 'MM-dd HH:mm:ss', // A dátumformátumot itt kell helyesen megadni
+                    format: 'yyyy-MM-dd HH:mm:ss', // A dátumformátumot itt kell helyesen megadni
                     show: true,
                     formatter: function(timestamp: string | number | Date) {
                         return new Date(timestamp).toDateString();
@@ -424,13 +424,13 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     initChartOption2() {
-        let minX = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let minX : number = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0
             ? this.dataArray[0][0][0] 
             : new Date("19 Jun 2017").getTime();
-        let maxX  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let maxX : number = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date("14 Aug 2017").getTime()
-        this.apexChartOptions2 = { //...this.apexChartOptions2, ...{
+        this.apexChartOptions2 = { //...this.apexChartOptions2, ...{ 
             series: [],
             chart: {
                 id: "chart2",
@@ -439,6 +439,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 brush: {
                     target: "chart1",
                     enabled: true
+                },
+                animations: {
+                    enabled : false,
+                    dynamicAnimation: false,
                 },
                 selection: {
                     enabled: true,
@@ -823,6 +827,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     onDeviceChange(event: any): void {
         if(this.initialized == false || event?.originalEvent == undefined) {
             console.log("onDeviceChange: not initialized!");
+            console.trace();
             return;
         }
         for(var device of this.devices) {
