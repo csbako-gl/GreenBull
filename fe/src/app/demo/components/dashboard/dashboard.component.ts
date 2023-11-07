@@ -260,10 +260,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     setChartOptionData() {
-        let minX = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let minX : number = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][0][0] 
             : new Date().getTime();
-        let maxX  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
+        let maxX : number = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date().getTime()
 
@@ -316,6 +316,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             max: maxX
         };
 
+        this.apexChartOptions1.chart = JSON.parse(JSON.stringify(this.apexChartOptions1.chart));
+        this.apexChartOptions2.chart = JSON.parse(JSON.stringify(this.apexChartOptions2.chart));
+
+        /* TODO ezzel a felső jelenik meg
+        this.apexChartOptions2.chart.selection.xaxis = { ...this.apexChartOptions2.chart.selection.xaxis};
+        this.apexChartOptions1.chart.selection.xaxis = { ...this.apexChartOptions1.chart.selection.xaxis};
+        this.apexChartOptions2.xaxis = { ...this.apexChartOptions2.xaxis};
+        this.apexChartOptions1.xaxis = { ...this.apexChartOptions1.xaxis};
+        */
+        
         //this.apexChartOptions2.series = { ...this.apexChartOptions2.series};
         /*this.apexChartOptions2.chart.selection.enabled = true;
         this.apexChartOptions2 = { ...this.apexChartOptions2};
@@ -374,116 +384,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                         if(config?.config?.tooltip?.x != null) {
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
                         }
-                        /*console.dir(chartContext?.data);
-                        console.dir(chartContext);
-                        console.dir(config);
-                        console.dir(config.config.series);
-                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
-                        console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));*/
-                        /*if (chartContext?.data.twoDSeriesX) {
-                            //console.log("PPPPPPPPPPPPP len:" + chartContext?.data?.twoDSeriesX.length);
-                            const series : any[] = chartContext?.data?.twoDSeriesX;
-                            if(series.length > 0) {
-                                config.config.chart.zoom.zoomedArea.xaxis.min = series[0];
-                                config.config.chart.zoom.zoomedArea.xaxis.max = series[series.length - 1];
-                            }
-                        }*/
-                        
-                        //config.config.chart.zoom.zoomedArea.xaxis = { ...config.config.chart.zoom.zoomedArea.xaxis};
-                        //console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.min));
-                        //console.log(new Date(config.config.chart.zoom.zoomedArea.xaxis.max));
                     },
-                    // custom function (not event)
-                    /*findIndex : function(date : any, series : any[] ) : number {
-                        let left = 0;
-                        let right = series.length - 1;
-                        let resultIndex = -1;
-                        while (left <= right) {
-                            let mid = Math.floor((left + right) / 2);
-                            if (series[mid] >= date) {
-                                resultIndex = mid;
-                                right = mid - 1;
-                            } else {
-                                left = mid + 1;
-                            }
-                        }
-                        return resultIndex;
-                    },
-                    // custom function (not event)
-                    findMinMaxValue : function (series: any[], minIndex: number, maxIndex: number): { min: number, max: number } {
-                        if (minIndex < 0 || minIndex >= series.length || maxIndex < 0 || maxIndex >= series.length || minIndex > maxIndex) {
-                            throw new Error("Érvénytelen indexek. min:" + minIndex + " max:" + maxIndex + " size:" + series.length);
-                        }
-                    
-                        let min = series[minIndex];
-                        let max = series[minIndex];
-                        for (let i = minIndex + 1; i <= maxIndex; i++) {
-                            if (series[i] < min) {
-                                min = series[i];
-                            } else if (series[i] > max) {
-                                max = series[i];
-                            }
-                        }
-                        
-                        return { min, max };
-                    },
-                    // TODO itt ki kell találni valamit hogy miért nem engedi ezt a függcényt használni
-                    racalcVerticalZoom : function (chartContext: any, { xaxis }: any) {
-                        const series : any[] = chartContext?.data?.twoDSeriesX;
-                        const seriesY: any[] = chartContext?.data?.twoDSeries;
-                        var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
-                        var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
-                        minIndex = minIndex > 0 ? minIndex : 0;
-                        maxIndex = maxIndex >= series.length ? series.length - 1 : maxIndex;
-                        const minmax = this.findMinMaxValue(seriesY, minIndex, maxIndex);
-                        let delta = (minmax.max - minmax.min) / 10.0;
-                        delta = delta > CHART_DELTA ? delta : CHART_DELTA;
-                        chartContext.updateOptions({
-                            yaxis: {
-                              min: minmax.min - delta * 2, // Új minimum érték
-                              max: minmax.max + delta// Új maximum érték
-                            }
-                        });
-                    },*/
-                    /*scrolled: function(chartContext: any, { xaxis }: any) {
-                        /*const series : any[] = chartContext?.data?.twoDSeriesX;
-                        const seriesY: any[] = chartContext?.data?.twoDSeries;
-                        var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
-                        var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
-                        minIndex = minIndex > 0 ? minIndex : 0;
-                        maxIndex = maxIndex >= series.length ? series.length - 1 : maxIndex;
-                        const minmax = this.findMinMaxValue(seriesY, minIndex, maxIndex);
-                        let delta = (minmax.max - minmax.min) / 10.0;
-                        delta = delta > CHART_DELTA ? delta : CHART_DELTA;
-                        chartContext.updateOptions({
-                            yaxis: {
-                              min: minmax.min - delta * 2, // Új minimum érték
-                              max: minmax.max + delta// Új maximum érték
-                            }
-                        });
-                        //this.racalcVerticalZoom(chartContext, xaxis);
-                    },*/
-                    /*zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
-                        const series : any[] = chartContext?.data?.twoDSeriesX;
-                        const seriesY: any[] = chartContext?.data?.twoDSeries;
-                        var minIndex : number = this.findIndex(new Date(xaxis?.min), series) - 1;
-                        var maxIndex : number = this.findIndex(new Date(xaxis?.max), series) + 1;
-                        minIndex = minIndex > 0 ? minIndex : 0;
-                        maxIndex = maxIndex >= series.length ? series.length - 1 : maxIndex;
-                        const minmax = this.findMinMaxValue(seriesY, minIndex, maxIndex);
-                        let delta = (minmax.max - minmax.min) / 10.0;
-                        delta = delta > CHART_DELTA ? delta : CHART_DELTA;
-                        chartContext.updateOptions({
-                            yaxis: {
-                              min: minmax.min - delta * 2, // Új minimum érték
-                              max: minmax.max + delta// Új maximum érték
-                            }
-                        });
-                    },*/
-                    /*brushScrolled: function(chartContext: any, { xaxis, yaxis }: any) {
-                        console.log("brushScrolled");
-                        console.dir(chartContext);
-                    }*/
                 }
             },
             tooltip: {
@@ -529,7 +430,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         let maxX  = this.dataArray[0]?.length > 0 && this.dataArray[0][0].length > 0 
             ? this.dataArray[0][this.dataArray[0].length-1][0] 
             : new Date("14 Aug 2017").getTime()
-        this.apexChartOptions2 = {// ...this.apexChartOptions2, ...{ this.apexChartOptions2.chart.selection.enabled
+        this.apexChartOptions2 = { //...this.apexChartOptions2, ...{
             series: [],
             chart: {
                 id: "chart2",
@@ -546,40 +447,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                         max: maxX
                     }
                 },
-                /*events: {
-                    updated: function(chartContext: any, config: any) {
-                        console.log("updated");
-                        console.dir(chartContext);
-                        console.dir(config);
-                    },
-                    mounted: function(chartContext: any, config: any) {
-                        console.log("mounted");
-                        console.dir(chartContext);
-                        console.dir(config);
-                        console.dir(config.globals.selection);
-                        console.dir(config.config.chart.selection.xaxis);
-                        /*config.globals.selection.min = config.config.chart.selection.xaxis.min;
-                        config.globals.selection.max = config.config.chart.selection.xaxis.max;* /
-
-                        const selectedDataPoints : any[] = [];
-                        chartContext.w.globals.series.forEach((series: any, seriesIndex: number) => {
-                            for (let i = 0; i < series.length; i++) {
-                              selectedDataPoints.push({
-                                seriesIndex: seriesIndex,
-                                dataPointIndex: i
-                              });
-                            }
-                        });
-                        chartContext.w.config.states.active = {
-                            filter: {
-                              type: 'none',
-                              value: 0
-                            }
-                          };
-                        chartContext.w.globals.selectedDataPoints = selectedDataPoints;
-                        //chartContext.setActivePoints(selectedDataPoints);
-                    }
-                },*/
             },
             colors: ["#008FFB"],
             fill: {
