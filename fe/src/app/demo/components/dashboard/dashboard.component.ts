@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, NgZone, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, NgZone, AfterViewInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 //import { ApexChartModule } from '../apex-chart/apex-chart.modules';
@@ -380,16 +380,21 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                         max: 0
                     }
                 },
-                /*events: {
+                events: {
                     mounted: function(chartContext: any, config: any) {
                         console.log("mounted", chartContext, config);
                         if(config?.config?.tooltip?.x != null) {
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
                             config.config.tooltip.enabled = false;
+                            config.config.tooltip.formatter = function(timestamp: string | number | Date) {
+                                console.log("DDDDDDDDDDDDDDDDDDD");
+                                return new Date(timestamp).toDateString();
+                            };
                             config.config.tooltip = { ...config.config.tooltip};
+
                         }
                     },
-                }*/
+                }
             },
             tooltip: {
                 x: {
