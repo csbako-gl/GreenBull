@@ -317,8 +317,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         };
 
         this.apexChartOptions1.chart = JSON.parse(JSON.stringify(this.apexChartOptions1.chart));
-        //this.apexChartOptions1.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
-        //this.apexChartOptions1.tooltip.x = JSON.parse(JSON.stringify(this.apexChartOptions1.tooltip.x));
+        this.apexChartOptions1.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
+        this.apexChartOptions1.tooltip.enabled = true;
+        this.apexChartOptions1.tooltip.x = JSON.parse(JSON.stringify(this.apexChartOptions1.tooltip.x));
         this.apexChartOptions2.chart = JSON.parse(JSON.stringify(this.apexChartOptions2.chart));
 
         /* TODO ezzel a felső jelenik meg
@@ -384,11 +385,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                     mounted: function(chartContext: any, config: any) {
                         console.log("mounted", chartContext, config);
                         if(config?.config?.tooltip?.x != null) {
+                            //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                             config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
-                            config.config.tooltip.enabled = false;
+                            config.config.tooltip.enabled = true;
                             config.config.tooltip.formatter = function(timestamp: string | number | Date) {
-                                console.log("DDDDDDDDDDDDDDDDDDD");
-                                return new Date(timestamp).toDateString();
+                                //console.log("DDDDDDDDDDDDDDDDDDD");
+                                return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
                             };
                             config.config.tooltip = { ...config.config.tooltip};
 
@@ -397,12 +399,13 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
             },
             tooltip: {
+                enabled: true,
                 x: {
                     format: 'yyyy-MM-dd HH:mm:ss', // A dátumformátumot itt kell helyesen megadni
                     show: true,
                     formatter: function(timestamp: string | number | Date) {
-                        console.log("OOOOOOOOOOOOOOOOOOOOO");
-                        return new Date(timestamp).toDateString();
+                        //console.log("OOOOOOOOOOOOOOOOOOOOO");
+                        return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
                     }
                 },
             },
@@ -424,6 +427,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 type: "datetime",
                 labels: {
                     datetimeUTC: false,
+                },
+                tooltip: {
+                    enabled: true,
+                    formatter: function(timestamp: string | number | Date) {
+                        return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
+                    }
                 }
             },
             yaxis: {
