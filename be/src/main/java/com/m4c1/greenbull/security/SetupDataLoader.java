@@ -7,7 +7,9 @@ import com.m4c1.greenbull.device.DeviceType;
 import com.m4c1.greenbull.device.DeviceTypeRepository;
 import com.m4c1.greenbull.security.privilege.Privilege;
 import com.m4c1.greenbull.security.privilege.PrivilegeRepository;
+import com.m4c1.greenbull.security.privilege.PrivilegeType;
 import com.m4c1.greenbull.security.role.Role;
+import com.m4c1.greenbull.security.role.RoleType;
 import com.m4c1.greenbull.security.user.User;
 import com.m4c1.greenbull.security.user.UserRepository;
 import com.m4c1.greenbull.security.role.RoleRepository;
@@ -19,6 +21,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import static com.m4c1.greenbull.security.privilege.PrivilegeType.*;
+import static com.m4c1.greenbull.security.role.RoleType.*;
 
 @Component
 public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
@@ -53,19 +58,27 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         }
 
         // == create initial privileges
-        final Privilege readPrivilege = createPrivilegeIfNotFound("READ_PRIVILEGE");
-        final Privilege writePrivilege = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
-        final Privilege passwordPrivilege = createPrivilegeIfNotFound("CHANGE_PASSWORD_PRIVILEGE");
+        final Privilege readPrivilege = createPrivilegeIfNotFound(READ);
+        final Privilege writePrivilege = createPrivilegeIfNotFound(WRITE);
+        final Privilege passwordPrivilege = createPrivilegeIfNotFound(CHANGE_PASSWORD);
+        final Privilege rootPrivilege = createPrivilegeIfNotFound(ROOT);
+        final Privilege changeUserDataPrivilege = createPrivilegeIfNotFound(CHANGE_USER_DATA);
+        final Privilege createUserPrivilege = createPrivilegeIfNotFound(CREATE_USER);
+        final Privilege modifyPrivilegePrivilege = createPrivilegeIfNotFound(MODIFY_PRIVILEGE);
+
 
         // == create initial roles
-        final List<Privilege> adminPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, writePrivilege, passwordPrivilege));
+        final List<Privilege> adminPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, writePrivilege, passwordPrivilege, changeUserDataPrivilege, createUserPrivilege, modifyPrivilegePrivilege));
+        final List<Privilege> rootPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, writePrivilege, passwordPrivilege, changeUserDataPrivilege, createUserPrivilege, modifyPrivilegePrivilege, rootPrivilege));
         final List<Privilege> userPrivileges = new ArrayList<>(Arrays.asList(readPrivilege, passwordPrivilege));
-        final Role adminRole = createRoleIfNotFound("ROLE_ADMIN", adminPrivileges);
-        final Role userRole = createRoleIfNotFound("ROLE_USER", userPrivileges);
+        final Role adminRole = createRoleIfNotFound(ROLE_ADMIN, adminPrivileges);
+        final Role userRole = createRoleIfNotFound(ROLE_USER, userPrivileges);
+        final Role rootRole = createRoleIfNotFound(ROLE_ROOT, rootPrivileges);
 
         // == create initial user
         User admin = createUserIfNotFound("admin@admin.com", "Admin", "Admin", "admin", new ArrayList<>(Collections.singletonList(adminRole)));
         createUserIfNotFound("test@test.com", "Test", "Test", "test", new ArrayList<>(Collections.singletonList(userRole)));
+        createUserIfNotFound("root@root.com", "root", "root", "root", new ArrayList<>(Collections.singletonList(rootRole)));
 
         // == create initial device
         final String desc = "1-port RS485/232 to WiFi converters USR-W610 can realize the bi-directional transparent "
@@ -79,7 +92,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         alreadySetup = true;
     }
 
-    private Privilege createPrivilegeIfNotFound(final String name) {
+    private Privilege createPrivilegeIfNotFound(final PrivilegeType type) {
+        final String name = type.name();
         Privilege privilege = privilegeRepository.findByName(name);
         if (privilege == null) {
             privilege = new Privilege(name);
@@ -88,7 +102,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         return privilege;
     }
 
-    private Role createRoleIfNotFound(final String name, final Collection<Privilege> privileges) {
+    private Role createRoleIfNotFound(final RoleType type, final Collection<Privilege> privileges) {
+        final String name = type.name();
         Role role = roleRepository.findByName(name);
         if (role == null) {
             role = new Role(name);

@@ -3,8 +3,10 @@ package com.m4c1.greenbull.data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,10 +38,10 @@ public class BatteryDataOutputDto {
         cell = Arrays.stream(data.getCell()).toList();
         temperature = Arrays.asList(data.getTemperature());
 
-        packTotal = data.getPackTotal();
+        packTotal = Objects.requireNonNullElse(data.getPackTotal(), 0);
         packCurrent = ushortToShort(data.getPackCurrent());
-        packRemain = data.getPackRemain();
-        cycleTimes = data.getCycleTimes();
-        other = data.getOther();
+        packRemain = Objects.requireNonNullElse(data.getPackRemain(), 0);
+        cycleTimes = Objects.requireNonNullElse(data.getCycleTimes(), 0);
+        other = Objects.requireNonNullElse(data.getOther(), new HashMap<>());
     }
 }

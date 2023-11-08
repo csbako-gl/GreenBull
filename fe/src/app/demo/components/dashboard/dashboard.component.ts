@@ -37,8 +37,8 @@ export type ChartOptions = {
     fill?: ApexFill | any;
     stroke?: ApexStroke | any;
     markers?: ApexMarkers | any;
-    colors?: string[] | any;
     tooltip?: ApexTooltip;
+    colors?: string[] | any;
 };
 
 const CHART_DELTA : number = 0.002;
@@ -396,6 +396,19 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
                         }
                     },
+                    /*updated: function(chartContext: any, config?: any): void {
+                        console.log("updated", chartContext, config);
+                        if(config?.config?.tooltip?.x != null) {
+                            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                            config.config.tooltip.x.format = 'yyyy-MM-dd HH:mm:ss';
+                            config.config.tooltip.enabled = true;
+                            config.config.tooltip.formatter = function(timestamp: string | number | Date) {
+                                console.log("DDDDDDDDDDDDDDDDDDD");
+                                return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
+                            };
+                            config.config.tooltip = { ...config.config.tooltip};
+                        }
+                    }*/
                 }
             },
             tooltip: {
@@ -874,6 +887,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         localStorage.setItem('dateFrom', this.dateFrom.getTime().toString());
         localStorage.setItem('dateTo', this.dateTo.getTime().toString());
         this.refreshDashboard();
+        location.reload();
     }
     
     onDataTypeChange(event: any): void {

@@ -22,7 +22,7 @@ export class DeviceService {
                 const devices = resp.data as Device[];
                 return devices;
             }),
-            catchError(error => {
+            catchError((error : any) => {
                 console.error('Error while processing devices:', error);
                 return throwError('Hiba történt a készülékek feldolgozása közben.', error);
             })
@@ -36,7 +36,7 @@ export class DeviceService {
                 const device_types = resp.data as DeviceType[];
                 return device_types;
             }),
-            catchError(error => {
+            catchError((error : any) => {
                 console.error('Error while get device types:', error);
                 throw error;
             })
@@ -49,7 +49,7 @@ export class DeviceService {
             map((resp: ApiResponse) => {
                 return resp;
             }),
-            catchError(error => {
+            catchError((error : any) => {
                 console.error('Error while get device types:', error);
                 throw error;
             })

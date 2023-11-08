@@ -2,6 +2,7 @@ package com.m4c1.greenbull.device;
 
 import com.m4c1.greenbull.api_gateway.RestException;
 import com.m4c1.greenbull.security.UserSecurityService;
+import com.m4c1.greenbull.security.role.RoleType;
 import com.m4c1.greenbull.security.user.ActiveUserStore;
 import com.m4c1.greenbull.security.user.User;
 import java.util.ArrayList;
@@ -70,7 +71,13 @@ public class DeviceService {
         }
 
         List<DeviceDto> deviceDtos = new ArrayList<>();
-        List<Device> devices = deviceRepository.findByUserId(user.getId());
+        List<Device> devices;
+        if (user.hasRole(RoleType.ROLE_ADMIN) || user.hasRole(RoleType.ROLE_ROOT)) {
+            devices = deviceRepository.findAll();
+        } else {
+            devices = deviceRepository.findByUserId(user.getId());
+        }
+
         devices.forEach(device -> {
             Optional<DeviceType> deviceType = deviceTypeRepository.findById(device.getTypeId());
             deviceType.ifPresent(type -> deviceDtos.add(DeviceDto.builder()

@@ -1,7 +1,10 @@
 package com.m4c1.greenbull.security.user;
 
+import com.m4c1.greenbull.security.privilege.Privilege;
+import com.m4c1.greenbull.security.privilege.PrivilegeType;
 import com.m4c1.greenbull.security.role.Role;
 
+import com.m4c1.greenbull.security.role.RoleType;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.jboss.aerogear.security.otp.api.Base32;
@@ -41,6 +44,21 @@ public class User {
         super();
         this.secret = Base32.random();
         this.enabled = false;
+    }
+
+    public boolean hasRole(RoleType type) {
+        return roles.stream().anyMatch(role -> role.getName().equals(type.name()));
+    }
+
+    public boolean hasPrivilege(PrivilegeType type) {
+        for (Role role : roles) {
+            for (Privilege privilege : role.getPrivileges()) {
+                if (privilege.getName().equals(type.name())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

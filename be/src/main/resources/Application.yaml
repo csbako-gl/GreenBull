@@ -8,10 +8,17 @@ spring:
     # none, servlet, reactive,
     web-application-type: servlet
 
-  datasource:
+  datasource_local:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
     password: x
+    driverClassName: org.postgresql.Driver
+
+  #datasource_server:
+  datasource:
+    url: jdbc:postgresql://81.183.232.211:30001/postgres
+    username: greenbull
+    password: Tibi123!
     driverClassName: org.postgresql.Driver
 
   jpa:
