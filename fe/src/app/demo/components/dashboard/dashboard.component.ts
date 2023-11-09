@@ -26,7 +26,6 @@ import { Router } from '@angular/router';
 //import { type } from 'os';
 import { CHART_COLORS } from 'src/app/demo/components/dashboard/dashboard.component.chart.color';
 import * as echarts from 'echarts/types/dist/echarts';
-import { F } from 'node_modules_/@angular/cdk/keycodes';
 
 
 export type ChartOptions = {
