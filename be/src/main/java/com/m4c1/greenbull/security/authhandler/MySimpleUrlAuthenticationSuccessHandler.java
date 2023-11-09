@@ -22,6 +22,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.m4c1.greenbull.security.privilege.PrivilegeType.*;
+
 @Slf4j
 @Component("myAuthenticationSuccessHandler")
 public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -89,9 +91,9 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
         boolean isAdmin = false;
         final Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (final GrantedAuthority grantedAuthority : authorities) {
-            if (grantedAuthority.getAuthority().equals("READ_PRIVILEGE")) {
+            if (grantedAuthority.getAuthority().equals(READ.name())) {
                 isUser = true;
-            } else if (grantedAuthority.getAuthority().equals("WRITE_PRIVILEGE")) {
+            } else if (grantedAuthority.getAuthority().equals(WRITE.name())) {
                 isAdmin = true;
                 isUser = false;
                 break;

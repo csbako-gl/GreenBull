@@ -117,8 +117,14 @@
                         (onChange)="onDataTypeChange($event)"
                         inputId="dataSelector"
                         [options]="dataTypes"
-                        placeholder="Select"
                         [(ngModel)]="dataType"
+                        placeholder="Select">
+                    </p-dropdown>
+                    <p-dropdown 
+                    (onChange)="onCurveTypeChange($event)"
+                        inputId="CurveTypeSelector"
+                        [options]="curveTypes"
+                        [(ngModel)]="curveType"
                         placeholder="Select">
                     </p-dropdown>
                     <!-- Range Picker-->

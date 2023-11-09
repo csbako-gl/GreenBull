@@ -84,10 +84,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     dateFrom: Date = new Date();
     dateTo: Date = new Date();
     dataTypes: any[] = [];
+    curveTypes: any[] = [];
     dataType: string = DataType.CELL_VOLTAGE;
     apexChart1?: ApexCharts;
     cellCount: number = 0;
     initialized : boolean = false;
+    curveType: string = 'smooth';
     
     public apexChartOptions1!: Partial<ChartOptions> | any;
     public apexChartOptions2!: Partial<ChartOptions> | any;
@@ -129,6 +131,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             { label: 'Max Delta voltage', value: DataType.DELTA }
         ];
 
+        this.curveTypes = [
+            { label: 'stepline', value: 'stepline' },
+            { label: 'straight', value: 'straight' },
+            { label: 'smooth', value: 'smooth'}
+        ];
+
         this.dataArray = [];
         for (let i = 0; i < 16; i++) {
             this.dataArray.push([]);
@@ -167,6 +175,20 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.initialized = true;
         console.log("ngAfterViewInit end");
+    }
+
+    startUpdateTimer() {
+        setTimeout(() => {
+            this.checkDataChangesInDb();
+            this.startUpdateTimer(); // Rekurzív hívás az időzítő újra beállításához
+        }, 10000); // 10000 ms = 10 másodperc    }
+    }
+
+    checkDataChangesInDb() {
+        if (this.initialized == false) {
+            return;
+        }
+        console.log("checkDataChangesInDb");
     }
 
     initDates() {
@@ -257,6 +279,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 //this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
             }
         });
+
+        this.startUpdateTimer();
     }
 
     setChartOptionData() {
@@ -425,7 +449,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             colors: CHART_COLORS,
             stroke: {
                 width: 2,   // vonalvastagság
-                curve: "smooth"
+                curve: this.curveType   // stepline, straight, smooth
             },
             dataLabels: {
                 enabled: false
@@ -899,6 +923,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         //this.refreshDashboard();
         // mindent is újra betölt reloadol!!! JOLY JOKER!!! 
         location.reload();
+    }
+
+    onCurveTypeChange(event : any): void {
+        if(this.initialized == false || event?.originalEvent == undefined) {
+            return;
+        }
+        console.log('onCurveTypeChange: ', this.curveType);
+        this.apexChartOptions1.stroke = {...this.apexChartOptions1.stroke, ...{curve :  this.curveType}}
+
+        //location.reload();
     }
 }    
 
