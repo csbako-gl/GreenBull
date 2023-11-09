@@ -32,8 +32,18 @@ export class BatteryDataService {
         );
     }
 
-    getBatteryDataFrom(deviceId: number, from: Date) {
-        return this.apiService.get('/battery_data/get_all_from', {device_id : deviceId, from : from});
+    getBatteryDataFrom(deviceId: number, from: Date, limit: number) : Observable<BatteryData[]> {
+        return this.apiService.get('/battery_data/get_all_from', {device_id : deviceId, from : from, limit: limit})
+        .pipe(
+            map((resp: ApiResponse) => {
+                const battery_data = resp.data as BatteryData[];
+                return battery_data;
+            }),
+            catchError(error => {
+                console.error('Error while get battery data from:' + from, error);
+                throw error;
+            })
+        );
     }
 
     getBatteryDataFromTo(deviceId: number, from: Date, to: Date, limit: number) : Observable<BatteryData[]> {

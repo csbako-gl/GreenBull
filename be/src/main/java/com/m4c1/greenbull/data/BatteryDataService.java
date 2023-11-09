@@ -190,12 +190,17 @@ public class BatteryDataService {
         return new ArrayList<>();
     }
 
-    public List<BatteryData> findByDeviceIdFromDate(Long deviceId, Date dateFrom) {
-        return batteryDataRepository.findByDeviceIdFromDate(deviceId, dateFrom);
+    public List<BatteryData> findByDeviceIdFromDate(Long deviceId, Date dateFrom, Long limit) {
+        List<BatteryData> batteryData = batteryDataRepository.findByDeviceIdFromDate(deviceId, dateFrom);
+        return reduceDataByLimit(batteryData, limit);
     }
 
     public List<BatteryData> findByDeviceIdFromAndToDate(Long deviceId, Date dateFrom, Date dateTo, Long limit) {
         List<BatteryData> batteryData = batteryDataRepository.findByDeviceIdFromAndToDate(deviceId, dateFrom, dateTo);
+        return reduceDataByLimit(batteryData, limit);
+    }
+
+    private List<BatteryData> reduceDataByLimit(List<BatteryData> batteryData, Long limit) {
         if (batteryData.size() <= limit) {
             return batteryData;
         }

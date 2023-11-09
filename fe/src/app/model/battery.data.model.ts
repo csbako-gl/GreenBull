@@ -1,9 +1,9 @@
 export interface BatteryData {
-    id?: number;
-    deviceId?: number;
-    date?: Date;
-    cell?: number[];
-    temperature?: number[];
+    id: number;
+    deviceId: number;
+    date: Date;
+    cell: number[];
+    temperature: number[];
     packTotal?: number;
     packCurrent?: number;
     packRemain?: number;

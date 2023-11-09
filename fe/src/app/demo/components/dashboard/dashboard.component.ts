@@ -26,6 +26,7 @@ import { Router } from '@angular/router';
 //import { type } from 'os';
 import { CHART_COLORS } from 'src/app/demo/components/dashboard/dashboard.component.chart.color';
 import * as echarts from 'echarts/types/dist/echarts';
+import { F } from 'node_modules_/@angular/cdk/keycodes';
 
 
 export type ChartOptions = {
@@ -74,13 +75,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     
     dataArray : any = [];
     batteryDataArray : BatteryData[] = [];
-    lastBatteryData : BatteryData = {};
+    lastBatteryData : BatteryData = {id : 0, deviceId : 0, cell : [], temperature : [], date : new Date()};
     averagevoltage: number = 0;
     deltaVoltage: number = 0;
     lastUpdateTime: string = "";
     devices: Device[] = [];
     device: Device = {};
-    rangeDates: Date[] = [new Date(), new Date()];
     dateFrom: Date = new Date();
     dateTo: Date = new Date();
     dataTypes: any[] = [];
@@ -115,7 +115,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     ngOnInit() {
         console.log("ngOnInit");
         this.batteryDataArray = [];
-        this.lastBatteryData = {};
         this.averagevoltage = 0;
         this.deltaVoltage = 0;
         this.lastUpdateTime = "";
@@ -189,6 +188,39 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             return;
         }
         console.log("checkDataChangesInDb");
+
+        this.initLastData();
+        this.updateChartWithLastValues();
+    }
+
+    updateChartWithLastValues() {
+        this.batteryDataService.getBatteryDataFrom(
+            this?.device?.id ?? -1,
+            this.dateTo,
+            CHART_LIMIT
+        ).subscribe((data : BatteryData[]) => {
+            console.log("updateChartWithLastValues:");
+            console.log("this.dateTo before:", data, this.dateTo);
+            if (data.length > 20 || data.length == 0) {
+                return;
+            }
+
+            for(let item of data) {
+                if (this.batteryDataArray[this.batteryDataArray.length - 1].date.getTime() < item.date?.getTime()) {
+                    this.batteryDataArray.push(item);
+                    this.addBatteryDataToDataArray(item);
+                    this.dataArray = [...this.dataArray];
+                }
+            }
+
+            console.log("this.dateTo after --- :", this.batteryDataArray[this.batteryDataArray.length - 1]);
+            this.dateTo = new Date(this.batteryDataArray[this.batteryDataArray.length - 1].date);
+            console.log("this.dateTo after:", this.dateTo);
+            this.dateTo = {...this.dateTo};
+
+            //this.initApexChartDataWithData(data);
+            // TODO
+        });
     }
 
     initDates() {
@@ -228,6 +260,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             this.initApexChartData();
             this.initGaugeChartOptions();
             this.initLastData();
+            this.startUpdateTimer();
         });
     }
 
@@ -267,8 +300,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.gaugeChartOptions1.series[0] = {...this.gaugeChartOptions1.series[0]};
                 //TODO this.cdr.detectChanges();
 
-                console.dir(this.lastBatteryData);
-                console.log('Amper: ' + this.gaugeChartOptions2.series[0].data[0].value);
+                //console.dir(this.lastBatteryData);
+                //console.log('Amper: ' + this.gaugeChartOptions2.series[0].data[0].value);
 
                 if (this.lastBatteryData.cell) {
                     this.cellCount =  this.lastBatteryData.cell?.length;
@@ -279,8 +312,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 //this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
             }
         });
-
-        this.startUpdateTimer();
     }
 
     setChartOptionData() {
@@ -417,9 +448,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                                 return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
                             };
                             config.config.tooltip = { ...config.config.tooltip};
-
                         }
                     },
+                    updated: function(chartContext: any, config: any) {
+                        console.log('updated1:', chartContext, config);
+                    },
+                    zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
+                        console.log('zoomed1:', chartContext, xaxis);
+                    }
                     /*updated: function(chartContext: any, config?: any): void {
                         console.log("updated", chartContext, config);
                         if(config?.config?.tooltip?.x != null) {
@@ -507,6 +543,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                         max: maxX
                     }
                 },
+                events: {
+                    selection: function(chartContext: any, { xaxis, yaxis }: any) {
+                        console.log('selection:', chartContext, xaxis, yaxis);
+                    },
+                    updated: function(chartContext: any, config: any) {
+                        console.log('updated2:', chartContext, config);
+                    }
+                }
             },
             colors: ["#008FFB"],
             fill: {
@@ -609,49 +653,53 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
         if(data?.length > 0) {
             for(let item of this.batteryDataArray) {
-                switch (this.dataType) {
-                    case DataType.CELL_VOLTAGE: {
-                        if (item.cell) {
-                            for (let i = 0; i < item.cell.length; i++) {
-                                this.dataArray[i].push([item.date, this.getChartValue(item.cell[i])]);
-                            }
-                        }
-                        break;
-                    }
-                    
-                    case DataType.TEMPERATURE: {
-                        if (item.temperature) {
-                            for (let i = 0; i < item.temperature.length; i++) {
-                                this.dataArray[i].push([item.date, this.getChartTemperatureValue(item.temperature[i])]);
-                            }
-                        }
-                        break;
-                    }
-
-                    case DataType.PACK_CURRENT:
-                        this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packCurrent).toFixed(2)]);
-                        break;
-                    
-                    case DataType.REMAIN_CAPACITY:
-                        this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packRemain).toFixed(2)]);
-                        break;
-
-                    case DataType.DELTA:
-                        let statDelta = this.getStatValues(item.cell);
-                        this.dataArray[0].push([item.date, this.getChartValue(statDelta.delta)]); // delta
-                        break;
-
-                    case DataType.STAT:
-                        let stat = this.getStatValues(item.cell);
-                        this.dataArray[0].push([item.date, this.getChartValue(stat.min)]); // min
-                        this.dataArray[1].push([item.date, this.getChartValue(stat.max)]); // max
-                        this.dataArray[2].push([item.date, this.getChartValue(stat.avg)]); // avg
-                        break;
-                }
+                this.addBatteryDataToDataArray(item);
             }
         }
 
         this.setChartOptionData();
+    }
+
+    private addBatteryDataToDataArray(item: BatteryData) {
+        switch (this.dataType) {
+            case DataType.CELL_VOLTAGE: {
+                if (item.cell) {
+                    for (let i = 0; i < item.cell.length; i++) {
+                        this.dataArray[i].push([item.date, this.getChartValue(item.cell[i])]);
+                    }
+                }
+                break;
+            }
+            
+            case DataType.TEMPERATURE: {
+                if (item.temperature) {
+                    for (let i = 0; i < item.temperature.length; i++) {
+                        this.dataArray[i].push([item.date, this.getChartTemperatureValue(item.temperature[i])]);
+                    }
+                }
+                break;
+            }
+
+            case DataType.PACK_CURRENT:
+                this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packCurrent).toFixed(2)]);
+                break;
+            
+            case DataType.REMAIN_CAPACITY:
+                this.dataArray[0].push([item.date, this.getPackCurrentValue(item.packRemain).toFixed(2)]);
+                break;
+
+            case DataType.DELTA:
+                let statDelta = this.getStatValues(item.cell);
+                this.dataArray[0].push([item.date, this.getChartValue(statDelta.delta)]); // delta
+                break;
+
+            case DataType.STAT:
+                let stat = this.getStatValues(item.cell);
+                this.dataArray[0].push([item.date, this.getChartValue(stat.min)]); // min
+                this.dataArray[1].push([item.date, this.getChartValue(stat.max)]); // max
+                this.dataArray[2].push([item.date, this.getChartValue(stat.avg)]); // avg
+                break;
+        }
     }
 
     private getChartValue(item: any) {

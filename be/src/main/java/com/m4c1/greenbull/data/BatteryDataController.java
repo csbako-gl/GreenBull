@@ -57,8 +57,12 @@ public class BatteryDataController {
     }
 
     @GetMapping("/get_all_from")
-    RestResponse<List<BatteryDataOutputDto>> getAll(@RequestParam("device_id") Long deviceId, @RequestParam("from") Date from) throws ParseException {
-        List<BatteryDataOutputDto> data = batteryDataService.findByDeviceIdFromDate(deviceId, from).stream().map(BatteryDataOutputDto::new).collect(Collectors.toList());
+    RestResponse<List<BatteryDataOutputDto>> getAllFrom(
+            @RequestParam("device_id") Long deviceId,
+            @RequestParam("from") Date from,
+            @RequestParam(name = "limit", defaultValue = "1500") Long limit
+    ) throws ParseException {
+        List<BatteryDataOutputDto> data = batteryDataService.findByDeviceIdFromDate(deviceId, from, limit).stream().map(BatteryDataOutputDto::new).collect(Collectors.toList());
         return RestResponse.<List<BatteryDataOutputDto>>builder().data(data).build();
     }
 
