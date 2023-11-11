@@ -205,8 +205,9 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             }
 
             for(let item of data) {
-                if (this.batteryDataArray[this.batteryDataArray.length - 1].date.getTime() < item.date?.getTime()) {
-                    this.batteryDataArray.push(item);
+                let date : Date = new Date(this.batteryDataArray[this.batteryDataArray.length - 1].date);
+                console.log("date:", date);
+                if (date.getTime() < new Date(item.date).getTime()) {                    this.batteryDataArray.push(item);
                     this.addBatteryDataToDataArray(item);
                     this.dataArray = [...this.dataArray];
                 }
@@ -215,7 +216,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             console.log("this.dateTo after --- :", this.batteryDataArray[this.batteryDataArray.length - 1]);
             this.dateTo = new Date(this.batteryDataArray[this.batteryDataArray.length - 1].date);
             console.log("this.dateTo after:", this.dateTo);
-            this.dateTo = {...this.dateTo};
 
             //this.initApexChartDataWithData(data);
             // TODO
@@ -290,14 +290,33 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.deltaVoltage = (max-min);
                 if(this.lastBatteryData.date) this.lastUpdateTime = format(this.lastBatteryData.date, 'yyyy-MM-dd HH:mm:ss');
 
-                this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[5] / 10 : 0;
-                this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[4] / 10 : 0;
-                this.gaugeChartOptions2.series[0].data[0].value = this.lastBatteryData?.packCurrent ? this.lastBatteryData.packCurrent / 100 : 0;
+                //this.gaugeChartOptions1.series[0].data[0].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[5] / 10 : 0;
+                //this.gaugeChartOptions1.series[0].data[1].value = this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[4] / 10 : 0;
 
-                // TODO lehet hogy ez nem kell ide, de ezzel sem és enélkül sem működik
-                this.gaugeChartOptions2.series[0] = {...this.gaugeChartOptions2.series[0]};
-                this.gaugeChartOptions1.series[0] = {...this.gaugeChartOptions1.series[0]};
-                //TODO this.cdr.detectChanges();
+                console.log('TEMPERATURE:',this.lastBatteryData?.temperature);
+                this.gaugeChartOptions1.series[0].data[0] = {...this.gaugeChartOptions1.series[0].data[0], ...{
+                    value : this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[5] / 10 : 0
+                }};
+
+                this.gaugeChartOptions1.series[0].data[1] = {...this.gaugeChartOptions1.series[0].data[1], ...{
+                    value : this.lastBatteryData?.temperature ? this.lastBatteryData.temperature[4] / 10 : 0
+                }};
+
+                //this.gaugeChartOptions1.series[0].data = [...this.gaugeChartOptions1.series[0].data];
+                //this.gaugeChartOptions1.series[0] = {...this.gaugeChartOptions1.series[0]};
+                //this.gaugeChartOptions1.series[0] = [...this.gaugeChartOptions1.series[0]];
+                //this.gaugeChartOptions1.series = [...this.gaugeChartOptions1.series];
+                //this.gaugeChartOptions1.series = {...this.gaugeChartOptions1.series};
+                this.gaugeChartOptions1 = {...this.gaugeChartOptions1};
+
+                this.gaugeChartOptions2.series[0].data[0] = {...this.gaugeChartOptions2.series[0].data[0], ...{
+                    value : this.lastBatteryData?.packCurrent ? this.lastBatteryData.packCurrent / 100 : 0
+                }};
+
+                this.gaugeChartOptions2 = {...this.gaugeChartOptions2};
+
+                console.log('TEMPERATURE2:',this.gaugeChartOptions1.series[0].data[0]);
+                this.cdr.detectChanges();
 
                 //console.dir(this.lastBatteryData);
                 //console.log('Amper: ' + this.gaugeChartOptions2.series[0].data[0].value);
@@ -449,7 +468,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                             config.config.tooltip = { ...config.config.tooltip};
                         }
                     },
-                    updated: function(chartContext: any, config: any) {
+                    /*updated: function(chartContext: any, config: any) {
                         console.log('updated1:', chartContext, config);
                     },
                     zoomed: function(chartContext: any, { xaxis, yaxis }: any) {
@@ -543,12 +562,12 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                     }
                 },
                 events: {
-                    selection: function(chartContext: any, { xaxis, yaxis }: any) {
+                    /*selection: function(chartContext: any, { xaxis, yaxis }: any) {
                         console.log('selection:', chartContext, xaxis, yaxis);
                     },
                     updated: function(chartContext: any, config: any) {
                         console.log('updated2:', chartContext, config);
-                    }
+                    }*/
                 }
             },
             colors: ["#008FFB"],
