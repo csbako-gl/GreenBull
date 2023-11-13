@@ -198,24 +198,38 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
             this.dateTo,
             CHART_LIMIT
         ).subscribe((data : BatteryData[]) => {
-            console.log("updateChartWithLastValues:");
-            console.log("this.dateTo before:", data, this.dateTo);
+            console.log("updateChartWithLastValues data.length:", data.length);
             if (data.length > 20 || data.length == 0) {
                 return;
             }
 
+            let hasNewData : boolean = false;
             for(let item of data) {
                 let date : Date = new Date(this.batteryDataArray[this.batteryDataArray.length - 1].date);
-                console.log("date:", date);
                 if (date.getTime() < new Date(item.date).getTime()) {                    this.batteryDataArray.push(item);
+                    hasNewData = true;
                     this.addBatteryDataToDataArray(item);
                     this.dataArray = [...this.dataArray];
                 }
             }
 
-            console.log("this.dateTo after --- :", this.batteryDataArray[this.batteryDataArray.length - 1]);
+            if (!hasNewData) {
+                return;
+            }
+
             this.dateTo = new Date(this.batteryDataArray[this.batteryDataArray.length - 1].date);
-            console.log("this.dateTo after:", this.dateTo);
+
+            this.apexChartOptions1.chart = JSON.parse(JSON.stringify(this.apexChartOptions1.chart));
+
+            //this.apexChartOptions1.chart.selection.xaxis = JSON.parse(JSON.stringify(this.apexChartOptions2.chart.selection.xaxis));
+            //this.apexChartOptions2.chart.selection.xaxis = JSON.parse(JSON.stringify(this.apexChartOptions2.chart.selection.xaxis));
+            //console.log('selection 2: ', this.apexChartOptions2.chart);
+
+            /*this.apexChartOptions1.chart.selection.xaxis = {
+                min: minX,
+                max: maxX
+            };*/
+    
 
             //this.initApexChartDataWithData(data);
             // TODO
